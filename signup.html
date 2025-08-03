@@ -13,7 +13,9 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
+
     .auth-container {
       background: #111;
       padding: 30px;
@@ -21,30 +23,53 @@
       box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
       text-align: center;
     }
-    input, button {
+
+    .auth-container input,
+    .auth-container button,
+    .auth-container a.button-link {
       width: 100%;
+      max-width: 280px;
       padding: 12px;
-      margin: 10px 0;
+      margin: 10px auto;
       border-radius: 8px;
       border: none;
+      display: block;
+      box-sizing: border-box;
+      font-size: 16px;
+      text-align: center;
     }
+
     button {
       background: red;
       color: white;
       font-weight: bold;
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
-    button:hover {
+
+    button:hover,
+    .button-link:hover {
       background: darkred;
+      transform: scale(1.03);
+    }
+
+    .button-link {
+      background: #222;
+      color: #f44;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.2s ease;
     }
   </style>
 </head>
 <body>
   <div class="auth-container">
-    <h2>THE RED - Sign Up</h2>
+    <h2>THE RED </h2>
     <input type="text" id="username" placeholder="Username" required />
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Password" required />
     <button onclick="signup()">Sign Up</button>
+    <a href="login.html" class="button-link">Already have an account? Log in</a>
   </div>
 
   <script type="module">
@@ -55,7 +80,7 @@
       apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
       authDomain: "the-red-6d1f8.firebaseapp.com",
       projectId: "the-red-6d1f8",
-      storageBucket: "the-red-6d1f8.appspot.com", 
+      storageBucket: "the-red-6d1f8.appspot.com",
       messagingSenderId: "720944313823",
       appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
       measurementId: "G-758MJ16J16"
