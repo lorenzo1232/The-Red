@@ -97,7 +97,13 @@
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: username });
-        alert("Signup successful!");
+
+        // send verification email
+        await userCredential.user.sendEmailVerification();
+
+        //redirect or show notice
+        alert("Signup successful! A verification email has been sent. Please check your inbox." );
+        window.location.href = "veryfy_email_notice.html";
       } catch (error) {
         alert("Signup failed: " + error.message);
       }
@@ -105,3 +111,4 @@
   </script>
 </body>
 </html>
+
