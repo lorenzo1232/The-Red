@@ -1,1 +1,22 @@
-<!-- Splash y loading -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Red</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="logo" class="ring pulse-splash"></div>
+  <div id="loadingText" class="loading-text">Loading The Red...</div>
+
+  <div class="controls">
+    <button onclick="setMode('splash')">Splash</button>
+    <button onclick="setMode('loading')">Loading</button>
+    <button onclick="setMode('active')">Grabando</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
