@@ -1,22 +1,27 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>The Red</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Red - Loading</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
 </head>
 <body>
-  <div id="logo" class="ring pulse-splash"></div>
-  <div id="loadingText" class="loading-text">Loading The Red...</div>
-
-  <div class="controls">
-    <button onclick="setMode('splash')">Splash</button>
-    <button onclick="setMode('loading')">Loading</button>
-    <button onclick="setMode('active')">Grabando</button>
+  <div class="splash-screen">
+    <div class="logo-container">
+      <div class="pulse-ring"></div>
+      <h1 class="logo-text">THE RED</h1>
+    </div>
+    <p class="loading-text">Loading real moments...</p>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    // Simula el tiempo de carga y redirige
+    setTimeout(() => {
+      window.location.href = "login.html"; // o "dashboard.html" si ya está logueado
+    }, 3000);
+  </script>
 </body>
 </html>
