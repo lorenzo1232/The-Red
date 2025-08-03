@@ -3,22 +3,48 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sign Up – The Red</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>The Red – Sign Up</title>
+  <style>
+    body {
+      background: #000;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .auth-container {
+      background: #111;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      background: red;
+      color: white;
+      font-weight: bold;
+    }
+    button:hover {
+      background: darkred;
+    }
+  </style>
 </head>
 <body>
   <div class="auth-container">
-    <h1 class="auth-title">THE RED</h1>
-    <h2 class="auth-subtitle">Create Account</h2>
-
-    <form id="signup-form">
-      <input type="text" id="username" placeholder="Username" required />
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Sign Up</button>
-    </form>
-
-    <p class="auth-link">Already have an account? <a href="login.html">Log in</a></p>
+    <h2>THE RED - Sign Up</h2>
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button onclick="signup()">Sign Up</button>
   </div>
 
   <script type="module">
@@ -26,32 +52,31 @@
     import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "TU_DOMINIO.firebaseapp.com",
-      projectId: "TU_PROJECT_ID",
-      storageBucket: "TU_BUCKET.appspot.com",
-      messagingSenderId: "ID",
-      appId: "ID"
+      apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
+      authDomain: "the-red-6d1f8.firebaseapp.com",
+      projectId: "the-red-6d1f8",
+      storageBucket: "the-red-6d1f8.firebasestorage.app",
+      messagingSenderId: "720944313823",
+      appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
+      measurementId: "G-758MJ16J16"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    document.getElementById('signup-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const username = document.getElementById('username').value;
+    window.signup = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const username = document.getElementById("username").value;
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: username });
-        alert('Account created! Redirecting...');
-        window.location.href = 'dashboard.html';
+        alert("Signup successful!");
       } catch (error) {
-        alert(error.message);
+        alert("Signup failed: " + error.message);
       }
-    });
+    };
   </script>
 </body>
 </html>
