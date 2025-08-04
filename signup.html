@@ -22,33 +22,31 @@
       border-radius: 12px;
       box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
       text-align: center;
+      width: 100%;
+      max-width: 400px;
     }
 
     .auth-container input,
     .auth-container button,
     .auth-container a.button-link {
       width: 100%;
-      max-width: 280px;
       padding: 12px;
       margin: 10px auto;
       border-radius: 8px;
       border: none;
       display: block;
-      box-sizing: border-box;
       font-size: 16px;
-      text-align: center;
     }
 
     button {
       background: red;
       color: white;
       font-weight: bold;
-      transition: all 0.2s ease;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    button:hover,
-    .button-link:hover {
+    button:hover {
       background: darkred;
       transform: scale(1.03);
     }
@@ -57,24 +55,29 @@
       background: #222;
       color: #f44;
       text-decoration: none;
+      text-align: center;
       font-weight: bold;
-      transition: all 0.2s ease;
     }
   </style>
 </head>
 <body>
   <div class="auth-container">
-    <h2>THE RED </h2>
+    <h2>THE RED – Sign Up</h2>
     <input type="text" id="username" placeholder="Username" required />
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Password" required />
     <button onclick="signup()">Sign Up</button>
-    <a href="login.html" class="button-link">Already have an account? Log in</a>
+    <a href="login.html" class="button-link">Already have an account? Log In</a>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      updateProfile,
+      sendEmailVerification
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
@@ -90,21 +93,20 @@
     const auth = getAuth(app);
 
     window.signup = async function () {
+      const username = document.getElementById("username").value;
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      const username = document.getElementById("username").value;
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: username });
 
-        // send verification email
-        await userCredential.user.sendEmailVerification();
+        // ✅ Send verification email
+        await sendEmailVerification(userCredential.user);
+        alert("Signup successful! Please check your email to verify your account.");
 
-        //redirect or show notice
-        alert("Signup successful! A verification email has been sent. Please check your inbox." );
-        window.location.href = "verify_email_notice.html";
-        
+        // Optionally redirect:
+        // window.location.href = "login.html";
       } catch (error) {
         alert("Signup failed: " + error.message);
       }
@@ -112,5 +114,3 @@
   </script>
 </body>
 </html>
-
-
