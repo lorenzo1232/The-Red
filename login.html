@@ -95,6 +95,7 @@
       try {
         await signInWithEmailAndPassword(auth, email, password);
         alert("Login successful!");
+        window.location.href = "feed.html";  // <-- Aquí rediriges al feed
         // Puedes redirigir a otra página si quieres
         // window.location.href = "dashboard.html";
       } catch (error) {
