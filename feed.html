@@ -89,7 +89,6 @@
 </head>
 <body>
 
-<h2 style="text-align:center;">🎥 The Red Feed (Debug Mode)</h2>
 <div id="feed"></div>
 
 <script type="module">
@@ -116,7 +115,6 @@
     feed.innerHTML = "";
 
     try {
-      console.log("🔍 Conectando a Firestore...");
       const querySnapshot = await getDocs(collection(db, "videos"));
       console.log(`📊 Videos encontrados: ${querySnapshot.size}`);
 
@@ -131,9 +129,6 @@
 
         if (!data.url) {
           console.error(`❌ El documento ${docSnap.id} no tiene un campo 'url'`);
-          const errorMsg = document.createElement("p");
-          errorMsg.textContent = `⚠️ El documento ${docSnap.id} no tiene un campo 'url'.`;
-          feed.appendChild(errorMsg);
           return;
         }
 
@@ -144,8 +139,9 @@
         video.src = data.url;
         video.controls = false;
         video.loop = true;
-        video.autoplay = false;
+        video.autoplay = true; // autoplay activado
         video.muted = true;
+        video.playsInline = true; // ✅ esencial para móviles
 
         // 🎥 Auto-play al hacer scroll
         const observer = new IntersectionObserver((entries) => {
@@ -159,11 +155,10 @@
         }, { threshold: 0.75 });
         observer.observe(video);
 
-        // Botones de control
+        // Botones flotantes
         const controls = document.createElement("div");
         controls.classList.add("controls");
 
-        // ❤️ Like
         const likeBtn = document.createElement("button");
         likeBtn.innerHTML = `❤️ ${data.likes || 0}`;
         likeBtn.classList.add("control-btn");
@@ -173,7 +168,6 @@
           data.likes++;
         };
 
-        // 💬 Comentarios
         const commentBtn = document.createElement("button");
         commentBtn.innerHTML = "💬";
         commentBtn.classList.add("control-btn");
@@ -205,7 +199,6 @@
         commentsSection.appendChild(commentInput);
         commentsSection.appendChild(postCommentBtn);
 
-        // Mostrar comentarios en tiempo real
         const q = query(collection(db, "videos", docSnap.id, "comments"), orderBy("timestamp", "asc"));
         onSnapshot(q, (snapshot) => {
           commentsList.innerHTML = "";
@@ -221,7 +214,6 @@
           commentsSection.style.display = commentsSection.style.display === "block" ? "none" : "block";
         };
 
-        // 🔗 Compartir
         const shareBtn = document.createElement("button");
         shareBtn.innerHTML = "🔗";
         shareBtn.classList.add("control-btn");
@@ -243,7 +235,7 @@
 
     } catch (error) {
       console.error("🚨 Error al cargar videos:", error);
-      feed.innerHTML = `<p style='text-align:center;color:red;'>Error al cargar videos: ${error.message}</p>`;
+      feed.innerHTML = `<p style='text-align:center;color:red;'>Error: ${error.message}</p>`;
     }
   }
 
