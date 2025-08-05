@@ -1,1 +1,200 @@
 <!-- Feed de videos -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Red – Feed</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      overflow-y: scroll;
+      font-family: Arial, sans-serif;
+    }
+
+    .video-container {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      flex-direction: column;
+    }
+
+    video {
+      max-height: 75vh;
+      max-width: 100%;
+      background: black;
+    }
+
+    .controls {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .control-btn {
+      background: rgba(229, 9, 20, 0.8);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .comments {
+      width: 100%;
+      padding: 10px;
+      background: #111;
+      color: white;
+      max-height: 25vh;
+      overflow-y: auto;
+    }
+
+    .comments input {
+      width: 80%;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      margin-top: 5px;
+      margin-right: 5px;
+    }
+
+    .comments button {
+      padding: 8px;
+      background: red;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="feed"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { 
+      getFirestore, collection, getDocs, doc, updateDoc, increment,
+      addDoc, onSnapshot, query, orderBy 
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
+      authDomain: "the-red-6d1f8.firebaseapp.com",
+      projectId: "the-red-6d1f8",
+      storageBucket: "the-red-6d1f8.appspot.com",
+      messagingSenderId: "720944313823",
+      appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
+      measurementId: "G-758MJ16J16"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        loadVideos(user);
+      }
+    });
+
+    async function loadVideos(user) {
+      const feed = document.getElementById("feed");
+      feed.innerHTML = "";
+
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+
+        const container = document.createElement("div");
+        container.classList.add("video-container");
+
+        const video = document.createElement("video");
+        video.src = data.url;
+        video.controls = false;
+        video.loop = true;
+        video.autoplay = false;
+        video.muted = true;
+
+        video.addEventListener("click", () => {
+          if (video.paused) video.play();
+          else video.pause();
+        });
+
+        const controls = document.createElement("div");
+        controls.classList.add("controls");
+
+        // ❤️ Like Button
+        const likeBtn = document.createElement("button");
+        likeBtn.innerHTML = `❤️ ${data.likes || 0}`;
+        likeBtn.classList.add("control-btn");
+        likeBtn.onclick = async () => {
+          const videoRef = doc(db, "videos", docSnap.id);
+          await updateDoc(videoRef, { likes: increment(1) });
+        };
+
+        controls.appendChild(likeBtn);
+        container.appendChild(video);
+        container.appendChild(controls);
+
+        // 💬 Comments Section
+        const commentsDiv = document.createElement("div");
+        commentsDiv.classList.add("comments");
+
+        const commentsList = document.createElement("div");
+        commentsDiv.appendChild(commentsList);
+
+        const commentInput = document.createElement("input");
+        commentInput.placeholder = "Write a comment...";
+        const commentBtn = document.createElement("button");
+        commentBtn.innerText = "Post";
+
+        commentBtn.onclick = async () => {
+          if (commentInput.value.trim() !== "") {
+            await addDoc(collection(db, "videos", docSnap.id, "comments"), {
+              user: user.email,
+              text: commentInput.value,
+              timestamp: new Date()
+            });
+            commentInput.value = "";
+          }
+        };
+
+        commentsDiv.appendChild(commentInput);
+        commentsDiv.appendChild(commentBtn);
+        container.appendChild(commentsDiv);
+
+        // 🔄 Real-time comments
+        const q = query(
+          collection(db, "videos", docSnap.id, "comments"),
+          orderBy("timestamp", "asc")
+        );
+        onSnapshot(q, (snapshot) => {
+          commentsList.innerHTML = "";
+          snapshot.forEach((commentDoc) => {
+            const comment = commentDoc.data();
+            const commentEl = document.createElement("p");
+            commentEl.innerHTML = `<strong>${comment.user}:</strong> ${comment.text}`;
+            commentsList.appendChild(commentEl);
+          });
+        });
+
+        feed.appendChild(container);
+      });
+    }
+  </script>
+</body>
+</html>
