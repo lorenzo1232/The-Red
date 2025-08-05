@@ -82,119 +82,59 @@
   <div id="feed"></div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { 
-      getFirestore, collection, getDocs, doc, updateDoc, increment,
-      addDoc, onSnapshot, query, orderBy 
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
-      authDomain: "the-red-6d1f8.firebaseapp.com",
-      projectId: "the-red-6d1f8",
-      storageBucket: "the-red-6d1f8.appspot.com",
-      messagingSenderId: "720944313823",
-      appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
-      measurementId: "G-758MJ16J16"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
+    authDomain: "the-red-6d1f8.firebaseapp.com",
+    projectId: "the-red-6d1f8",
+    storageBucket: "the-red-6d1f8.appspot.com",
+    messagingSenderId: "720944313823",
+    appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
+    measurementId: "G-758MJ16J16"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-      } else {
-        loadVideos(user);
-      }
-    });
+  window.login = async function () {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
 
-    async function loadVideos(user) {
-      const feed = document.getElementById("feed");
-      feed.innerHTML = "";
-
-      const querySnapshot = await getDocs(collection(db, "videos"));
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-
-        const container = document.createElement("div");
-        container.classList.add("video-container");
-
-        const video = document.createElement("video");
-        video.src = data.url;
-        video.controls = false;
-        video.loop = true;
-        video.autoplay = false;
-        video.muted = true;
-
-        video.addEventListener("click", () => {
-          if (video.paused) video.play();
-          else video.pause();
-        });
-
-        const controls = document.createElement("div");
-        controls.classList.add("controls");
-
-        // ❤️ Like Button
-        const likeBtn = document.createElement("button");
-        likeBtn.innerHTML = `❤️ ${data.likes || 0}`;
-        likeBtn.classList.add("control-btn");
-        likeBtn.onclick = async () => {
-          const videoRef = doc(db, "videos", docSnap.id);
-          await updateDoc(videoRef, { likes: increment(1) });
-        };
-
-        controls.appendChild(likeBtn);
-        container.appendChild(video);
-        container.appendChild(controls);
-
-        // 💬 Comments Section
-        const commentsDiv = document.createElement("div");
-        commentsDiv.classList.add("comments");
-
-        const commentsList = document.createElement("div");
-        commentsDiv.appendChild(commentsList);
-
-        const commentInput = document.createElement("input");
-        commentInput.placeholder = "Write a comment...";
-        const commentBtn = document.createElement("button");
-        commentBtn.innerText = "Post";
-
-        commentBtn.onclick = async () => {
-          if (commentInput.value.trim() !== "") {
-            await addDoc(collection(db, "videos", docSnap.id, "comments"), {
-              user: user.email,
-              text: commentInput.value,
-              timestamp: new Date()
-            });
-            commentInput.value = "";
-          }
-        };
-
-        commentsDiv.appendChild(commentInput);
-        commentsDiv.appendChild(commentBtn);
-        container.appendChild(commentsDiv);
-
-        // 🔄 Real-time comments
-        const q = query(
-          collection(db, "videos", docSnap.id, "comments"),
-          orderBy("timestamp", "asc")
-        );
-        onSnapshot(q, (snapshot) => {
-          commentsList.innerHTML = "";
-          snapshot.forEach((commentDoc) => {
-            const comment = commentDoc.data();
-            const commentEl = document.createElement("p");
-            commentEl.innerHTML = `<strong>${comment.user}:</strong> ${comment.text}`;
-            commentsList.appendChild(commentEl);
-          });
-        });
-
-        feed.appendChild(container);
-      });
+    if (!email || !password) {
+      alert("⚠️ Please enter both email and password.");
+      return;
     }
-  </script>
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 🚨 TEMPORARY: Skip email verification check while testing
+      alert("✅ Login successful!");
+      window.location.href = "feed.html";
+
+      // If you want to enforce verification, uncomment:
+      /*
+      if (user.emailVerified) {
+        alert("✅ Login successful!");
+        window.location.href = "feed.html";
+      } else {
+        alert("⚠️ Please verify your email before logging in.");
+      }
+      */
+    } catch (error) {
+      console.error(error.code, error.message);
+      if (error.code === "auth/user-not-found") {
+        alert("❌ No account found with this email.");
+      } else if (error.code === "auth/wrong-password") {
+        alert("❌ Incorrect password.");
+      } else {
+        alert("❌ Login failed: " + error.message);
+      }
+    }
+  };
+</script>
 </body>
 </html>
