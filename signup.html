@@ -3,81 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Red – Sign Up</title>
+  <title>The Red – Feed</title>
   <style>
     body {
+      margin: 0;
+      padding: 0;
       background: #000;
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
+      overflow-y: scroll;
+      font-family: Arial, sans-serif;
+    }
+
+    .video-container {
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
+      position: relative;
     }
 
-    .auth-container {
-      background: #111;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
-      text-align: center;
-      width: 100%;
-      max-width: 400px;
+    video {
+      max-height: 100vh;
+      max-width: 100%;
+      background: black;
     }
 
-    .auth-container input,
-    .auth-container button,
-    .auth-container a.button-link {
-      width: 100%;
-      padding: 12px;
-      margin: 10px auto;
-      border-radius: 8px;
-      border: none;
-      display: block;
-      font-size: 16px;
+    /* Opcional: barra de botones flotantes */
+    .controls {
+      position: absolute;
+      right: 15px;
+      bottom: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
 
-    button {
-      background: red;
+    .control-btn {
+      background: rgba(255, 0, 0, 0.8);
       color: white;
-      font-weight: bold;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
       cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    button:hover {
-      background: darkred;
-      transform: scale(1.03);
-    }
-
-    .button-link {
-      background: #222;
-      color: #f44;
-      text-decoration: none;
-      text-align: center;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="auth-container">
-    <h2>THE RED – Sign Up</h2>
-    <input type="text" id="username" placeholder="Username" required />
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Password" required />
-    <button onclick="signup()">Sign Up</button>
-    <a href="login.html" class="button-link">Already have an account? Log In</a>
-  </div>
+
+  <div id="feed"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      updateProfile,
-      sendEmailVerification
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
@@ -90,27 +67,66 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
     const auth = getAuth(app);
 
-    window.signup = async function () {
-      const username = document.getElementById("username").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(userCredential.user, { displayName: username });
-
-        // ✅ Send verification email
-        await sendEmailVerification(userCredential.user);
-        alert("Signup successful! Please check your email to verify your account.");
-
-        // Optionally redirect:
-        // window.location.href = "login.html";
-      } catch (error) {
-        alert("Signup failed: " + error.message);
+    // Verifica que el usuario esté logueado
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html"; // si no está logueado, regresa al login
+      } else {
+        loadVideos();
       }
-    };
+    });
+
+    async function loadVideos() {
+      const feed = document.getElementById("feed");
+      feed.innerHTML = "";
+
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+
+        const container = document.createElement("div");
+        container.classList.add("video-container");
+
+        const video = document.createElement("video");
+        video.src = data.url;
+        video.controls = false;
+        video.loop = true;
+        video.autoplay = false;
+        video.muted = true;
+
+        // Play video when in viewport
+        video.addEventListener("click", () => {
+          if (video.paused) {
+            video.play();
+          } else {
+            video.pause();
+          }
+        });
+
+        // Opcional: Botones flotantes
+        const controls = document.createElement("div");
+        controls.classList.add("controls");
+
+        const likeBtn = document.createElement("button");
+        likeBtn.innerHTML = "❤️";
+        likeBtn.classList.add("control-btn");
+
+        const shareBtn = document.createElement("button");
+        shareBtn.innerHTML = "🔗";
+        shareBtn.classList.add("control-btn");
+
+        controls.appendChild(likeBtn);
+        controls.appendChild(shareBtn);
+
+        container.appendChild(video);
+        container.appendChild(controls);
+
+        feed.appendChild(container);
+      });
+    }
   </script>
 </body>
 </html>
