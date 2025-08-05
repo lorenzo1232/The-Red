@@ -31,6 +31,20 @@
       background: black;
     }
 
+    /* Marca de agua THE RED */
+    .watermark {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #ff1e1e;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+      letter-spacing: 1px;
+      z-index: 20;
+      user-select: none;
+    }
+
     .controls {
       position: absolute;
       right: 15px;
@@ -42,18 +56,19 @@
     }
 
     .control-btn {
-      background: rgba(229, 9, 20, 0.8);
+      background: rgba(229, 9, 20, 0.85);
       color: white;
       border: none;
-      padding: 12px;
+      padding: 14px;
       border-radius: 50%;
-      font-size: 20px;
+      font-size: 22px;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.2s;
     }
 
     .control-btn:hover {
-      transform: scale(1.1);
+      background: rgba(255, 30, 30, 1);
+      transform: scale(1.15);
     }
 
     .comments-section {
@@ -125,25 +140,27 @@
 
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        console.log("📄 Documento leído:", data);
 
-        if (!data.url) {
-          console.error(`❌ El documento ${docSnap.id} no tiene un campo 'url'`);
-          return;
-        }
+        if (!data.url) return;
 
         const container = document.createElement("div");
         container.classList.add("video-container");
 
+        // Video
         const video = document.createElement("video");
         video.src = data.url;
         video.controls = false;
         video.loop = true;
-        video.autoplay = true; // autoplay activado
+        video.autoplay = true;
         video.muted = true;
-        video.playsInline = true; // ✅ esencial para móviles
+        video.playsInline = true;
 
-        // 🎥 Auto-play al hacer scroll
+        // Marca de agua
+        const watermark = document.createElement("div");
+        watermark.classList.add("watermark");
+        watermark.innerText = "THE RED";
+
+        // Autoplay en scroll
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -155,7 +172,7 @@
         }, { threshold: 0.75 });
         observer.observe(video);
 
-        // Botones flotantes
+        // Botones
         const controls = document.createElement("div");
         controls.classList.add("controls");
 
@@ -227,6 +244,7 @@
         controls.appendChild(shareBtn);
 
         container.appendChild(video);
+        container.appendChild(watermark);
         container.appendChild(controls);
         container.appendChild(commentsSection);
 
