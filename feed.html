@@ -7,10 +7,10 @@
   <style>
     body {
       margin: 0;
-      padding: 0;
       background: #000;
-      overflow-y: scroll;
       font-family: Arial, sans-serif;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
     }
 
     .video-container {
@@ -19,54 +19,63 @@
       justify-content: center;
       align-items: center;
       position: relative;
-      flex-direction: column;
+      scroll-snap-align: start;
     }
 
     video {
-      max-height: 75vh;
-      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       background: black;
     }
 
     .controls {
       position: absolute;
       right: 15px;
-      top: 50%;
-      transform: translateY(-50%);
+      bottom: 100px;
       display: flex;
       flex-direction: column;
       gap: 15px;
+      z-index: 10;
     }
 
     .control-btn {
       background: rgba(229, 9, 20, 0.8);
       color: white;
       border: none;
-      padding: 10px;
+      padding: 12px;
       border-radius: 50%;
-      cursor: pointer;
       font-size: 20px;
+      cursor: pointer;
+      transition: transform 0.2s;
     }
 
-    .comments {
+    .control-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .comments-section {
+      position: absolute;
+      bottom: 0;
+      left: 0;
       width: 100%;
-      padding: 10px;
-      background: #111;
-      color: white;
-      max-height: 25vh;
+      background: rgba(0, 0, 0, 0.85);
+      max-height: 50vh;
       overflow-y: auto;
+      display: none;
+      padding: 10px;
+      color: white;
+      z-index: 20;
     }
 
-    .comments input {
+    .comment-input {
       width: 80%;
       padding: 8px;
       border: none;
       border-radius: 5px;
-      margin-top: 5px;
-      margin-right: 5px;
     }
 
-    .comments button {
+    .comment-btn {
       padding: 8px;
       background: red;
       border: none;
@@ -78,124 +87,143 @@
 </head>
 <body>
 
-  <div id="feed"></div>
+<div id="feed"></div>
 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { 
+    getFirestore, collection, getDocs, doc, updateDoc, increment, addDoc, onSnapshot, query, orderBy
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { 
-      getFirestore, collection, getDocs, doc, updateDoc, increment,
-      addDoc, onSnapshot, query, orderBy 
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
+    authDomain: "the-red-6d1f8.firebaseapp.com",
+    projectId: "the-red-6d1f8",
+    storageBucket: "the-red-6d1f8.appspot.com",
+    messagingSenderId: "720944313823",
+    appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
+    measurementId: "G-758MJ16J16"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
-      authDomain: "the-red-6d1f8.firebaseapp.com",
-      projectId: "the-red-6d1f8",
-      storageBucket: "the-red-6d1f8.appspot.com",
-      messagingSenderId: "720944313823",
-      appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
-      measurementId: "G-758MJ16J16"
-    };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+  async function loadVideos() {
+    const feed = document.getElementById("feed");
+    feed.innerHTML = "";
 
-    // ✅ Skip email verification for now
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "login.html"; // Redirect if not logged in
-      } else {
-        loadVideos(user);
-      }
-    });
+    const querySnapshot = await getDocs(collection(db, "videos"));
 
-    async function loadVideos(user) {
-      const feed = document.getElementById("feed");
-      feed.innerHTML = "";
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
-      const querySnapshot = await getDocs(collection(db, "videos"));
-      querySnapshot.forEach((docSnap) => {
-        const data = docSnap.data();
+      const container = document.createElement("div");
+      container.classList.add("video-container");
 
-        const container = document.createElement("div");
-        container.classList.add("video-container");
+      const video = document.createElement("video");
+      video.src = data.url;
+      video.controls = false;
+      video.loop = true;
+      video.autoplay = false;
+      video.muted = true;
 
-        const video = document.createElement("video");
-        video.src = data.url;
-        video.controls = false;
-        video.loop = true;
-        video.autoplay = false;
-        video.muted = true;
-
-        video.addEventListener("click", () => {
-          if (video.paused) video.play();
-          else video.pause();
-        });
-
-        const controls = document.createElement("div");
-        controls.classList.add("controls");
-
-        // ❤️ Like Button
-        const likeBtn = document.createElement("button");
-        likeBtn.innerHTML = `❤️ ${data.likes || 0}`;
-        likeBtn.classList.add("control-btn");
-        likeBtn.onclick = async () => {
-          const videoRef = doc(db, "videos", docSnap.id);
-          await updateDoc(videoRef, { likes: increment(1) });
-        };
-
-        controls.appendChild(likeBtn);
-        container.appendChild(video);
-        container.appendChild(controls);
-
-        // 💬 Comments Section
-        const commentsDiv = document.createElement("div");
-        commentsDiv.classList.add("comments");
-
-        const commentsList = document.createElement("div");
-        commentsDiv.appendChild(commentsList);
-
-        const commentInput = document.createElement("input");
-        commentInput.placeholder = "Write a comment...";
-        const commentBtn = document.createElement("button");
-        commentBtn.innerText = "Post";
-
-        commentBtn.onclick = async () => {
-          if (commentInput.value.trim() !== "") {
-            await addDoc(collection(db, "videos", docSnap.id, "comments"), {
-              user: user.email,
-              text: commentInput.value,
-              timestamp: new Date()
-            });
-            commentInput.value = "";
+      // 🎥 Auto-play al hacer scroll
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            video.play();
+          } else {
+            video.pause();
           }
-        };
-
-        commentsDiv.appendChild(commentInput);
-        commentsDiv.appendChild(commentBtn);
-        container.appendChild(commentsDiv);
-
-        // 🔄 Real-time comments
-        const q = query(
-          collection(db, "videos", docSnap.id, "comments"),
-          orderBy("timestamp", "asc")
-        );
-        onSnapshot(q, (snapshot) => {
-          commentsList.innerHTML = "";
-          snapshot.forEach((commentDoc) => {
-            const comment = commentDoc.data();
-            const commentEl = document.createElement("p");
-            commentEl.innerHTML = `<strong>${comment.user}:</strong> ${comment.text}`;
-            commentsList.appendChild(commentEl);
-          });
         });
+      }, { threshold: 0.75 });
+      observer.observe(video);
 
-        feed.appendChild(container);
+      // Botones de control
+      const controls = document.createElement("div");
+      controls.classList.add("controls");
+
+      // ❤️ Like
+      const likeBtn = document.createElement("button");
+      likeBtn.innerHTML = `❤️ ${data.likes || 0}`;
+      likeBtn.classList.add("control-btn");
+      likeBtn.onclick = async () => {
+        await updateDoc(doc(db, "videos", docSnap.id), { likes: increment(1) });
+        likeBtn.innerHTML = `❤️ ${data.likes + 1}`;
+        data.likes++;
+      };
+
+      // 💬 Comentarios
+      const commentBtn = document.createElement("button");
+      commentBtn.innerHTML = "💬";
+      commentBtn.classList.add("control-btn");
+
+      const commentsSection = document.createElement("div");
+      commentsSection.classList.add("comments-section");
+
+      const commentsList = document.createElement("div");
+      commentsSection.appendChild(commentsList);
+
+      const commentInput = document.createElement("input");
+      commentInput.classList.add("comment-input");
+      commentInput.placeholder = "Write a comment...";
+      const postCommentBtn = document.createElement("button");
+      postCommentBtn.innerText = "Post";
+      postCommentBtn.classList.add("comment-btn");
+
+      postCommentBtn.onclick = async () => {
+        if (commentInput.value.trim() !== "") {
+          await addDoc(collection(db, "videos", docSnap.id, "comments"), {
+            user: "Anonymous",
+            text: commentInput.value,
+            timestamp: new Date()
+          });
+          commentInput.value = "";
+        }
+      };
+
+      commentsSection.appendChild(commentInput);
+      commentsSection.appendChild(postCommentBtn);
+
+      // Mostrar comentarios en tiempo real
+      const q = query(collection(db, "videos", docSnap.id, "comments"), orderBy("timestamp", "asc"));
+      onSnapshot(q, (snapshot) => {
+        commentsList.innerHTML = "";
+        snapshot.forEach((c) => {
+          const comment = c.data();
+          const p = document.createElement("p");
+          p.textContent = `${comment.user}: ${comment.text}`;
+          commentsList.appendChild(p);
+        });
       });
-    }
-  </script>
+
+      commentBtn.onclick = () => {
+        commentsSection.style.display = commentsSection.style.display === "block" ? "none" : "block";
+      };
+
+      // 🔗 Compartir
+      const shareBtn = document.createElement("button");
+      shareBtn.innerHTML = "🔗";
+      shareBtn.classList.add("control-btn");
+      shareBtn.onclick = () => {
+        navigator.clipboard.writeText(data.url);
+        alert("✅ Video link copied!");
+      };
+
+      controls.appendChild(likeBtn);
+      controls.appendChild(commentBtn);
+      controls.appendChild(shareBtn);
+
+      container.appendChild(video);
+      container.appendChild(controls);
+      container.appendChild(commentsSection);
+
+      feed.appendChild(container);
+    });
+  }
+
+  loadVideos();
+</script>
+
 </body>
 </html>
