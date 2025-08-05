@@ -22,58 +22,83 @@
       border-radius: 12px;
       box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
       text-align: center;
+      width: 100%;
+      max-width: 350px;
     }
 
-    .auth-container input,
-    .auth-container button,
-    .auth-container a.button-link {
+    .auth-container input {
       width: 100%;
-      max-width: 280px;
       padding: 12px;
       margin: 10px auto;
       border-radius: 8px;
       border: none;
-      display: block;
       box-sizing: border-box;
       font-size: 16px;
-      text-align: center;
+      background-color: #222;
+      color: white;
     }
 
     button {
-      background: red;
+      background: #e50914; /* 🔴 Rojo Netflix style */
       color: white;
       font-weight: bold;
-      transition: all 0.2s ease;
+      padding: 12px;
+      border-radius: 999px;
+      border: none;
       cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      margin-top: 10px;
+      transition: all 0.2s ease;
     }
 
-    button:hover,
-    .button-link:hover {
-      background: darkred;
+    button:hover {
+      background: #b20710; /* rojo más oscuro al pasar el mouse */
       transform: scale(1.03);
     }
 
+    .forgot-link {
+      display: block;
+      margin-top: 15px;
+      color: white;
+      text-decoration: none;
+      font-size: 15px;
+    }
+
+    .forgot-link:hover {
+      text-decoration: underline;
+    }
+
     .button-link {
+      display: block;
       background: #222;
       color: #f44;
+      padding: 10px;
+      margin-top: 15px;
       text-decoration: none;
+      border-radius: 8px;
       font-weight: bold;
       transition: all 0.2s ease;
+    }
+
+    .button-link:hover {
+      background: #333;
     }
   </style>
 </head>
 <body>
   <div class="auth-container">
-    <h2>THE RED </h2>
+    <h2>THE RED - Log In</h2>
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Password" required />
-    <button onclick="login()">Sign In</button>
+    <button onclick="login()">Log in</button>
+    <a href="#" class="forgot-link" onclick="resetPassword()">Forgot password?</a>
     <a href="signup.html" class="button-link">Don't have an account? Sign Up</a>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
@@ -88,18 +113,39 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
+    // Login function
     window.login = async function () {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Login successful!");
-        window.location.href = "feed.html";  // <-- Aquí rediriges al feed
-        // Puedes redirigir a otra página si quieres
-        // window.location.href = "dashboard.html";
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        if (user.emailVerified) {
+          alert("✅ Login successful!");
+          window.location.href = "feed.html";
+        } else {
+          alert("⚠️ Please verify your email before logging in.");
+        }
       } catch (error) {
-        alert("Login failed: " + error.message);
+        alert("❌ Login failed: " + error.message);
+      }
+    };
+
+    // Forgot password function
+    window.resetPassword = async function () {
+      const email = document.getElementById("email").value;
+      if (!email) {
+        alert("Please enter your email above first.");
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("📧 Password reset email sent. Check your inbox.");
+      } catch (error) {
+        alert("❌ Failed to send reset email: " + error.message);
       }
     };
   </script>
