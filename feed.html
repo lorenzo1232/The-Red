@@ -11,6 +11,7 @@
       font-family: Arial, sans-serif;
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
+      color: white;
     }
 
     .video-container {
@@ -20,6 +21,7 @@
       align-items: center;
       position: relative;
       scroll-snap-align: start;
+      flex-direction: column;
     }
 
     video {
@@ -87,6 +89,7 @@
 </head>
 <body>
 
+<h2 style="text-align:center;">🎥 The Red Feed (Debug Mode)</h2>
 <div id="feed"></div>
 
 <script type="module">
@@ -112,114 +115,136 @@
     const feed = document.getElementById("feed");
     feed.innerHTML = "";
 
-    const querySnapshot = await getDocs(collection(db, "videos"));
+    try {
+      console.log("🔍 Conectando a Firestore...");
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      console.log(`📊 Videos encontrados: ${querySnapshot.size}`);
 
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
+      if (querySnapshot.size === 0) {
+        feed.innerHTML = "<p style='text-align:center;'>⚠️ No se encontraron videos en la colección 'videos'.</p>";
+        return;
+      }
 
-      const container = document.createElement("div");
-      container.classList.add("video-container");
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        console.log("📄 Documento leído:", data);
 
-      const video = document.createElement("video");
-      video.src = data.url;
-      video.controls = false;
-      video.loop = true;
-      video.autoplay = false;
-      video.muted = true;
-
-      // 🎥 Auto-play al hacer scroll
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            video.play();
-          } else {
-            video.pause();
-          }
-        });
-      }, { threshold: 0.75 });
-      observer.observe(video);
-
-      // Botones de control
-      const controls = document.createElement("div");
-      controls.classList.add("controls");
-
-      // ❤️ Like
-      const likeBtn = document.createElement("button");
-      likeBtn.innerHTML = `❤️ ${data.likes || 0}`;
-      likeBtn.classList.add("control-btn");
-      likeBtn.onclick = async () => {
-        await updateDoc(doc(db, "videos", docSnap.id), { likes: increment(1) });
-        likeBtn.innerHTML = `❤️ ${data.likes + 1}`;
-        data.likes++;
-      };
-
-      // 💬 Comentarios
-      const commentBtn = document.createElement("button");
-      commentBtn.innerHTML = "💬";
-      commentBtn.classList.add("control-btn");
-
-      const commentsSection = document.createElement("div");
-      commentsSection.classList.add("comments-section");
-
-      const commentsList = document.createElement("div");
-      commentsSection.appendChild(commentsList);
-
-      const commentInput = document.createElement("input");
-      commentInput.classList.add("comment-input");
-      commentInput.placeholder = "Write a comment...";
-      const postCommentBtn = document.createElement("button");
-      postCommentBtn.innerText = "Post";
-      postCommentBtn.classList.add("comment-btn");
-
-      postCommentBtn.onclick = async () => {
-        if (commentInput.value.trim() !== "") {
-          await addDoc(collection(db, "videos", docSnap.id, "comments"), {
-            user: "Anonymous",
-            text: commentInput.value,
-            timestamp: new Date()
-          });
-          commentInput.value = "";
+        if (!data.url) {
+          console.error(`❌ El documento ${docSnap.id} no tiene un campo 'url'`);
+          const errorMsg = document.createElement("p");
+          errorMsg.textContent = `⚠️ El documento ${docSnap.id} no tiene un campo 'url'.`;
+          feed.appendChild(errorMsg);
+          return;
         }
-      };
 
-      commentsSection.appendChild(commentInput);
-      commentsSection.appendChild(postCommentBtn);
+        const container = document.createElement("div");
+        container.classList.add("video-container");
 
-      // Mostrar comentarios en tiempo real
-      const q = query(collection(db, "videos", docSnap.id, "comments"), orderBy("timestamp", "asc"));
-      onSnapshot(q, (snapshot) => {
-        commentsList.innerHTML = "";
-        snapshot.forEach((c) => {
-          const comment = c.data();
-          const p = document.createElement("p");
-          p.textContent = `${comment.user}: ${comment.text}`;
-          commentsList.appendChild(p);
+        const video = document.createElement("video");
+        video.src = data.url;
+        video.controls = false;
+        video.loop = true;
+        video.autoplay = false;
+        video.muted = true;
+
+        // 🎥 Auto-play al hacer scroll
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              video.play();
+            } else {
+              video.pause();
+            }
+          });
+        }, { threshold: 0.75 });
+        observer.observe(video);
+
+        // Botones de control
+        const controls = document.createElement("div");
+        controls.classList.add("controls");
+
+        // ❤️ Like
+        const likeBtn = document.createElement("button");
+        likeBtn.innerHTML = `❤️ ${data.likes || 0}`;
+        likeBtn.classList.add("control-btn");
+        likeBtn.onclick = async () => {
+          await updateDoc(doc(db, "videos", docSnap.id), { likes: increment(1) });
+          likeBtn.innerHTML = `❤️ ${data.likes + 1}`;
+          data.likes++;
+        };
+
+        // 💬 Comentarios
+        const commentBtn = document.createElement("button");
+        commentBtn.innerHTML = "💬";
+        commentBtn.classList.add("control-btn");
+
+        const commentsSection = document.createElement("div");
+        commentsSection.classList.add("comments-section");
+
+        const commentsList = document.createElement("div");
+        commentsSection.appendChild(commentsList);
+
+        const commentInput = document.createElement("input");
+        commentInput.classList.add("comment-input");
+        commentInput.placeholder = "Write a comment...";
+        const postCommentBtn = document.createElement("button");
+        postCommentBtn.innerText = "Post";
+        postCommentBtn.classList.add("comment-btn");
+
+        postCommentBtn.onclick = async () => {
+          if (commentInput.value.trim() !== "") {
+            await addDoc(collection(db, "videos", docSnap.id, "comments"), {
+              user: "Anonymous",
+              text: commentInput.value,
+              timestamp: new Date()
+            });
+            commentInput.value = "";
+          }
+        };
+
+        commentsSection.appendChild(commentInput);
+        commentsSection.appendChild(postCommentBtn);
+
+        // Mostrar comentarios en tiempo real
+        const q = query(collection(db, "videos", docSnap.id, "comments"), orderBy("timestamp", "asc"));
+        onSnapshot(q, (snapshot) => {
+          commentsList.innerHTML = "";
+          snapshot.forEach((c) => {
+            const comment = c.data();
+            const p = document.createElement("p");
+            p.textContent = `${comment.user}: ${comment.text}`;
+            commentsList.appendChild(p);
+          });
         });
+
+        commentBtn.onclick = () => {
+          commentsSection.style.display = commentsSection.style.display === "block" ? "none" : "block";
+        };
+
+        // 🔗 Compartir
+        const shareBtn = document.createElement("button");
+        shareBtn.innerHTML = "🔗";
+        shareBtn.classList.add("control-btn");
+        shareBtn.onclick = () => {
+          navigator.clipboard.writeText(data.url);
+          alert("✅ Video link copied!");
+        };
+
+        controls.appendChild(likeBtn);
+        controls.appendChild(commentBtn);
+        controls.appendChild(shareBtn);
+
+        container.appendChild(video);
+        container.appendChild(controls);
+        container.appendChild(commentsSection);
+
+        feed.appendChild(container);
       });
 
-      commentBtn.onclick = () => {
-        commentsSection.style.display = commentsSection.style.display === "block" ? "none" : "block";
-      };
-
-      // 🔗 Compartir
-      const shareBtn = document.createElement("button");
-      shareBtn.innerHTML = "🔗";
-      shareBtn.classList.add("control-btn");
-      shareBtn.onclick = () => {
-        navigator.clipboard.writeText(data.url);
-        alert("✅ Video link copied!");
-      };
-
-      controls.appendChild(likeBtn);
-      controls.appendChild(commentBtn);
-      controls.appendChild(shareBtn);
-
-      container.appendChild(video);
-      container.appendChild(controls);
-      container.appendChild(commentsSection);
-
-      feed.appendChild(container);
-    });
+    } catch (error) {
+      console.error("🚨 Error al cargar videos:", error);
+      feed.innerHTML = `<p style='text-align:center;color:red;'>Error al cargar videos: ${error.message}</p>`;
+    }
   }
 
   loadVideos();
