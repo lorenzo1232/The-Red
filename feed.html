@@ -12,6 +12,44 @@
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     color: white;
+    display: flex;
+  }
+  /* Barra lateral izquierda */
+  .side-nav {
+    position: fixed;
+    top: 0; left: 0;
+    width: 60px;
+    height: 100%;
+    background: rgba(15, 15, 15, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    border-right: 2px solid #ff1e1e;
+    box-shadow: 2px 0 15px rgba(255,0,0,0.3);
+    z-index: 200;
+  }
+  .side-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 15px 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+  }
+  .side-icon {
+    width: 26px; height: 26px;
+    transition: color 0.3s ease, filter 0.3s ease;
+  }
+  .side-item:hover .side-icon {
+    color: #ff1e1e;
+    filter: drop-shadow(0 0 6px #ff1e1e);
+  }
+  /* Feed container */
+  #feed {
+    flex: 1;
+    margin-left: 60px; /* espacio para la barra lateral */
   }
   .video-container {
     height: 100vh;
@@ -68,56 +106,18 @@
     transform: scale(1.15);
     box-shadow: 0 0 25px rgba(255,0,0,0.9);
   }
-  /* Panel comentarios */
-  .comments-section {
-    position: absolute; bottom: 0; left: 0; width: 100%;
-    background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(6px);
-    border-top: 2px solid #ff1e1e; max-height: 55vh; overflow-y: auto;
-    display: none; padding: 15px; color: white; z-index: 20;
-    transform-origin: center; box-shadow: 0 0 15px rgba(255,0,0,0.7), inset 0 0 10px rgba(255,0,0,0.4);
-  }
-  @keyframes doorOpen {
-    0% { transform: scaleX(0); opacity: 0; }
-    60% { transform: scaleX(1.05); opacity: 1; }
-    100% { transform: scaleX(1); opacity: 1; }
-  }
-  @keyframes doorClose {
-    0% { transform: scaleX(1); opacity: 1; }
-    40% { transform: scaleX(1.05); opacity: 0.7; }
-    100% { transform: scaleX(0); opacity: 0; }
-  }
-  .comments-section div p {
-    padding: 8px 0; border-bottom: 1px solid rgba(255, 30, 30, 0.3);
-  }
-  .comment-input {
-    width: 75%; padding: 10px; margin-top: 8px; margin-right: 5px;
-    background: #111; color: white; border: none; border-radius: 5px;
-    box-shadow: 0 0 8px rgba(255,0,0,0.4);
-  }
-  .comment-btn {
-    padding: 10px 15px;
-    background: linear-gradient(90deg, #ff1e1e, #ff4a4a);
-    border: none; border-radius: 5px; color: white; font-weight: bold;
-    cursor: pointer; box-shadow: 0 0 8px rgba(255,0,0,0.5);
-  }
-  /* Flash rojo */
-  .flash-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255,0,0,0.4); z-index: 999; opacity: 0;
-    pointer-events: none;
-  }
-  @keyframes flash { 0% {opacity: 0;} 20% {opacity: 0.8;} 100% {opacity: 0;} }
   /* Barra inferior */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background: rgba(15, 15, 15, 0.95);
     display: flex; justify-content: space-around; align-items: center;
     padding: 8px 0; border-top: 2px solid #ff1e1e;
-    box-shadow: 0 -2px 15px rgba(255,0,0,0.4); z-index: 100;
+    box-shadow: 0 -2px 15px rgba(255,0,0,0.4); z-index: 150;
   }
   .nav-item {
     display: flex; flex-direction: column; align-items: center;
     position: relative; color: white; font-size: 14px; cursor: pointer;
+    text-decoration: none;
   }
   .nav-icon { width: 26px; height: 26px; color: white; transition: color 0.3s ease, filter 0.3s ease; }
   .nav-item:hover .nav-icon { color: #ff1e1e; filter: drop-shadow(0 0 6px #ff1e1e); }
@@ -143,48 +143,73 @@
 </head>
 <body>
 
+<!-- Barra lateral izquierda -->
+<div class="side-nav">
+  <a href="feed.html" class="side-item">
+    <svg class="side-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10" />
+    </svg>
+  </a>
+  <a href="search.html" class="side-item">
+    <svg class="side-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 4a7 7 0 100 14 7 7 0 000-14z" />
+    </svg>
+  </a>
+  <a href="friends.html" class="side-item">
+    <svg class="side-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 110-8 4 4 0 010 8z" />
+    </svg>
+  </a>
+  <a href="inbox.html" class="side-item">
+    <svg class="side-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-6 4h10M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  </a>
+  <a href="profile.html" class="side-item">
+    <svg class="side-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7.963 7.963 0 0012 20a7.963 7.963 0 006.879-2.196M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  </a>
+</div>
+
+<!-- Contenedor del feed -->
 <div id="feed"></div>
 <div id="loading" class="loading">⬇️ Loading more videos...</div>
-<div class="flash-overlay" id="flashOverlay"></div>
 
-<!-- Barra de navegación inferior con SVG -->
+<!-- Barra inferior con SVG -->
 <div class="bottom-nav">
-  <div class="nav-item">
+  <a href="feed.html" class="nav-item">
     <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M4 10v10h16V10" />
     </svg>
     <span class="nav-text">Home</span>
-  </div>
-  <div class="nav-item">
+  </a>
+  <a href="friends.html" class="nav-item">
     <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-4a4 4 0 110-8 4 4 0 010 8z" />
     </svg>
     <span class="badge">55</span>
     <span class="nav-text">Friends</span>
-  </div>
-  <div class="nav-item upload-btn">
+  </a>
+  <a href="upload.html" class="nav-item upload-btn">
     <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24">
       <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </svg>
-  </div>
-  <div class="nav-item">
+  </a>
+  <a href="inbox.html" class="nav-item">
     <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-6 4h10M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
     <span class="badge">11</span>
     <span class="nav-text">Inbox</span>
-  </div>
-  <div class="nav-item">
+  </a>
+  <a href="profile.html" class="nav-item">
     <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A7.963 7.963 0 0012 20a7.963 7.963 0 006.879-2.196M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
     <span class="nav-text">Profile</span>
-  </div>
+  </a>
 </div>
-
-<script type="module">
-/* Aquí va el mismo JS que ya teníamos para cargar videos, flash rojo, comentarios */
-</script>
 
 </body>
 </html>
