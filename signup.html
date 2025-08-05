@@ -3,58 +3,95 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Red – Feed</title>
+  <title>The Red – Sign Up</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
       background: #000;
-      overflow-y: scroll;
-      font-family: Arial, sans-serif;
-    }
-
-    .video-container {
-      height: 100vh;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      position: relative;
+      height: 100vh;
+      margin: 0;
     }
 
-    video {
-      max-height: 100vh;
-      max-width: 100%;
-      background: black;
+    .auth-container {
+      background: #111;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
+      text-align: center;
+      width: 100%;
+      max-width: 350px;
     }
 
-    /* Opcional: barra de botones flotantes */
-    .controls {
-      position: absolute;
-      right: 15px;
-      bottom: 50px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .control-btn {
-      background: rgba(255, 0, 0, 0.8);
-      color: white;
+    .auth-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px auto;
+      border-radius: 8px;
       border: none;
-      padding: 10px;
-      border-radius: 50%;
+      box-sizing: border-box;
+      font-size: 16px;
+      background-color: #222;
+      color: white;
+    }
+
+    button {
+      background: #e50914; /* 🔴 Rojo estilo Netflix */
+      color: white;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 999px;
+      border: none;
       cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      margin-top: 10px;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: #b20710; /* Rojo más oscuro */
+      transform: scale(1.03);
+    }
+
+    .button-link {
+      display: block;
+      background: #222;
+      color: #f44;
+      padding: 10px;
+      margin-top: 15px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+
+    .button-link:hover {
+      background: #333;
     }
   </style>
 </head>
 <body>
-
-  <div id="feed"></div>
+  <div class="auth-container">
+    <h2>THE RED - Sign Up</h2>
+    <input type="text" id="username" placeholder="Username" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <button onclick="signup()">Sign Up</button>
+    <a href="login.html" class="button-link">Already have an account? Log In</a>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      updateProfile,
+      sendEmailVerification
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
@@ -67,66 +104,31 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Verifica que el usuario esté logueado
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "login.html"; // si no está logueado, regresa al login
-      } else {
-        loadVideos();
+    window.signup = async function () {
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!username || !email || !password) {
+        alert("⚠️ Please fill in all fields.");
+        return;
       }
-    });
 
-    async function loadVideos() {
-      const feed = document.getElementById("feed");
-      feed.innerHTML = "";
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: username });
 
-      const querySnapshot = await getDocs(collection(db, "videos"));
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+        await sendEmailVerification(userCredential.user);
+        alert("✅ Account created! Please check your email to verify your account.");
 
-        const container = document.createElement("div");
-        container.classList.add("video-container");
-
-        const video = document.createElement("video");
-        video.src = data.url;
-        video.controls = false;
-        video.loop = true;
-        video.autoplay = false;
-        video.muted = true;
-
-        // Play video when in viewport
-        video.addEventListener("click", () => {
-          if (video.paused) {
-            video.play();
-          } else {
-            video.pause();
-          }
-        });
-
-        // Opcional: Botones flotantes
-        const controls = document.createElement("div");
-        controls.classList.add("controls");
-
-        const likeBtn = document.createElement("button");
-        likeBtn.innerHTML = "❤️";
-        likeBtn.classList.add("control-btn");
-
-        const shareBtn = document.createElement("button");
-        shareBtn.innerHTML = "🔗";
-        shareBtn.classList.add("control-btn");
-
-        controls.appendChild(likeBtn);
-        controls.appendChild(shareBtn);
-
-        container.appendChild(video);
-        container.appendChild(controls);
-
-        feed.appendChild(container);
-      });
-    }
+        // Redirige al login
+        window.location.href = "login.html";
+      } catch (error) {
+        alert("❌ Signup failed: " + error.message);
+      }
+    };
   </script>
 </body>
 </html>
