@@ -39,7 +39,7 @@
     }
 
     button {
-      background: #e50914; /* 🔴 Rojo Netflix style */
+      background: #e50914; /* rojo estilo Netflix */
       color: white;
       font-weight: bold;
       padding: 12px;
@@ -53,7 +53,7 @@
     }
 
     button:hover {
-      background: #b20710; /* rojo más oscuro al pasar el mouse */
+      background: #b20710; /* rojo más oscuro */
       transform: scale(1.03);
     }
 
@@ -113,31 +113,29 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    //empieza 
+    // ✅ Login sin verificar email
     window.login = async function () {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
 
-    if (!email || !password) {
-    alert("⚠️ Please enter both email and password.");
-    return;
-  }
+      if (!email || !password) {
+        alert("⚠️ Please enter both email and password.");
+        return;
+      }
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    alert(`✅ Login successful as ${user.email}`);
-    window.location.href = "feed.html";
-  } catch (error) {
-    console.error("Login failed:", error.code, error.message);
-    alert(`❌ ${error.code} - ${error.message}`);
-  }
-};
-    
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
+        // 🚨 Email verification skipped for now
+        alert("✅ Login successful!");
+        window.location.href = "feed.html";
 
-    //se corta 
-    
-    // Forgot password function
+      } catch (error) {
+        alert("❌ Login failed: " + error.message);
+      }
+    };
+
+    // 🔄 Forgot Password
     window.resetPassword = async function () {
       const email = document.getElementById("email").value;
       if (!email) {
