@@ -26,10 +26,21 @@
       z-index: 10;
     }
 
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .logo {
       font-weight: bold;
       font-size: 20px;
       color: red;
+    }
+
+    .search-icon {
+      font-size: 20px;
+      cursor: pointer;
     }
 
     .header .right {
@@ -117,7 +128,10 @@
 
   <!-- HEADER -->
   <div class="header">
-    <span class="logo">THE RED</span>
+    <div class="header-left">
+      <span class="logo">THE RED</span>
+      <span class="search-icon">🔍</span>
+    </div>
     <div class="right">
       <span>Following</span>
       <span class="header-icon">☰</span>
