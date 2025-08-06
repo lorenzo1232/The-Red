@@ -1,231 +1,198 @@
+//feed.html//
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Red - Feed</title>
-<style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Red - Feed</title>
+  <style>
     body {
-        margin: 0;
-        padding: 0;
-        background: black;
-        color: red;
-        font-family: Arial, sans-serif;
-        overflow: hidden;
+      margin: 0;
+      background-color: black;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      color: white;
     }
 
-    /* Top Bar */
-    .top-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        padding: 10px 15px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: transparent;
-        z-index: 1000;
-        font-size: 18px;
-        font-weight: bold;
-    }
-    .top-bar span {
-        display: flex;
-        align-items: center;
-    }
-    .top-bar img {
-        width: 18px;
-        height: 18px;
-        margin-left: 6px;
-    }
-
-    /* Floating Action Icons Left */
-    .floating-icons {
-        position: absolute;
-        bottom: 80px;
-        left: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        z-index: 1000;
-    }
-    .floating-icons button {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 26px;
-        cursor: pointer;
-        transition: transform 0.2s ease;
-    }
-    .floating-icons button:hover {
-        transform: scale(1.2);
-    }
-
-    /* Bottom Navigation */
-    .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        background: #111;
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        padding: 10px 0;
-        z-index: 1000;
-    }
-    .bottom-nav .nav-item {
-        text-align: center;
-        color: white;
-        font-size: 14px;
-    }
-    .bottom-nav .nav-item .nav-icon {
-        font-size: 22px;
-        display: block;
-    }
-    .upload-btn {
-        background: red;
-        color: white;
-        border-radius: 50%;
-        padding: 10px;
-        font-size: 24px;
-    }
-
-    /* Video Feed Style */
-    .feed {
-        height: 100vh;
-        overflow-y: scroll;
-        scroll-snap-type: y mandatory;
-    }
-    .video-container {
-        position: relative;
-        width: 100%;
-        height: 100vh;
-        scroll-snap-align: start;
-    }
     video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 1;
     }
 
-    /* Video Info */
+    .sidebar-left {
+      position: fixed;
+      left: 10px;
+      bottom: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      z-index: 3;
+    }
+
+    .sidebar-left .icon {
+      font-size: 24px;
+      text-align: center;
+      cursor: pointer;
+    }
+
     .video-info {
-        position: absolute;
-        bottom: 120px;
-        left: 15px;
-        z-index: 10;
-        text-shadow: 0 0 5px black;
+      position: absolute;
+      bottom: 80px;
+      left: 15px;
+      z-index: 2;
     }
-    .video-info strong {
-        display: block;
-        color: red;
+
+    .video-info .user {
+      font-weight: bold;
+      font-size: 18px;
     }
-</style>
+
+    .video-info .description {
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 5;
+    }
+
+    .bottom-nav .nav-item {
+      text-align: center;
+      color: white;
+      font-size: 12px;
+    }
+
+    .upload-btn {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: red;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 32px;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 6;
+      box-shadow: 0 0 10px red;
+      cursor: pointer;
+    }
+
+    .header {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 6;
+      font-weight: bold;
+      font-size: 22px;
+    }
+
+    .search-icon {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 6;
+    }
+  </style>
 </head>
 <body>
 
-<!-- Top Bar -->
-<div class="top-bar">
-    <span>THE RED <img src="https://cdn-icons-png.flaticon.com/512/49/49116.png" alt="Search"></span>
-    <span>Following ☰</span>
-</div>
+  <video id="videoPlayer" autoplay muted loop playsinline></video>
 
-<!-- Feed Container -->
-<div class="feed" id="feed"></div>
+  <div class="header">THE RED</div>
+  <div class="search-icon">🔍</div>
 
-<!-- Bottom Navigation -->
-<div class="bottom-nav">
-    <div class="nav-item"><span class="nav-icon">🏠</span>Home</div>
-    <div class="nav-item"><span class="nav-icon">👥</span>Friends</div>
-    <div class="upload-btn">＋</div>
-    <div class="nav-item"><span class="nav-icon">💬</span>Inbox</div>
-    <div class="nav-item"><span class="nav-icon">👤</span>Profile</div>
-</div>
+  <div class="sidebar-left">
+    <div class="icon">👤</div>
+    <div class="icon">❤️</div>
+    <div class="icon">💬</div>
+    <div class="icon">📌</div>
+    <div class="icon">🔄</div>
+  </div>
 
-<!-- Firebase Script -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <div class="video-info">
+    <div class="user">@user</div>
+    <div class="description">Description of the video...</div>
+  </div>
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
-    authDomain: "the-red-6d1f8.firebaseapp.com",
-    projectId: "the-red-6d1f8",
-    storageBucket: "the-red-6d1f8.appspot.com",
-    messagingSenderId: "720944313823",
-    appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
-    measurementId: "G-758MJ16J16"
-};
+  <div class="upload-btn">＋</div>
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <div>👥</div>
+      <div>Friends</div>
+    </div>
+    <div class="nav-item">
+      <div>💬</div>
+      <div>Inbox</div>
+    </div>
+    <div class="nav-item">
+      <div>👤</div>
+      <div>Profile</div>
+    </div>
+  </div>
 
-async function loadVideos() {
-    const feed = document.getElementById("feed");
-    feed.innerHTML = "";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const querySnapshot = await getDocs(collection(db, "videos"));
+    const firebaseConfig = {
+      apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
+      authDomain: "the-red-6d1f8.firebaseapp.com",
+      projectId: "the-red-6d1f8",
+      storageBucket: "the-red-6d1f8.appspot.com",
+      messagingSenderId: "720944313823",
+      appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
+      measurementId: "G-758MJ16J16"
+    };
 
-    if (querySnapshot.empty) {
-        feed.innerHTML = `
-            <div class="video-container">
-                <video src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay loop muted playsinline></video>
-                <div class="video-info">
-                    <strong>@thered</strong>
-                    Video de prueba
-                </div>
-                <div class="floating-icons">
-                    <button>👤</button>
-                    <button>❤️</button>
-                    <button>💬</button>
-                    <button>📌</button>
-                    <button>🔄</button>
-                </div>
-            </div>
-        `;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadVideos() {
+      const querySnapshot = await getDocs(collection(db, "videos"));
+      const player = document.getElementById("videoPlayer");
+
+      if (querySnapshot.empty) {
+        console.warn("⚠️ No se encontraron videos en la colección 'videos'.");
         return;
+      }
+
+      const videos = [];
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.url) videos.push(data.url);
+      });
+
+      let currentIndex = 0;
+      player.src = videos[currentIndex];
+
+      player.addEventListener('ended', () => {
+        currentIndex = (currentIndex + 1) % videos.length;
+        player.src = videos[currentIndex];
+        player.play();
+      });
     }
 
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        feed.innerHTML += `
-            <div class="video-container">
-                <video src="${data.url}" autoplay loop muted playsinline></video>
-                <div class="video-info">
-                    <strong>@${data.username || 'user'}</strong>
-                    ${data.description || ''}
-                </div>
-                <div class="floating-icons">
-                    <button>👤</button>
-                    <button>❤️</button>
-                    <button>💬</button>
-                    <button>📌</button>
-                    <button>🔄</button>
-                </div>
-            </div>
-        `;
-    });
-
-    initVideoScroll();
-}
-
-function initVideoScroll() {
-    const videos = document.querySelectorAll("video");
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.play();
-            } else {
-                entry.target.pause();
-            }
-        });
-    }, { threshold: 0.7 });
-
-    videos.forEach(video => observer.observe(video));
-}
-
-loadVideos();
-</script>
-
+    window.addEventListener('DOMContentLoaded', loadVideos);
+  </script>
 </body>
 </html>
