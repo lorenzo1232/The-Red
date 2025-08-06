@@ -80,3 +80,48 @@ form button:hover {
   font-size: 14px;
   opacity: 0.9;
 }
+.upload-main-btn {
+  position: fixed;
+  bottom: 75px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 36px;
+  background: red;
+  color: white;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  line-height: 60px;
+  box-shadow: 0 0 15px red;
+  z-index: 100;
+  cursor: pointer;
+}
+
+.upload-options {
+  position: fixed;
+  bottom: 145px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  z-index: 99;
+}
+
+.upload-option {
+  background: rgba(255, 0, 0, 0.9);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 20px;
+  margin: 6px 0;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 8px red;
+}
+
+.upload-option:hover {
+  transform: scale(1.05);
+  background: darkred;
+}
