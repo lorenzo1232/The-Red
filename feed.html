@@ -126,6 +126,19 @@
       font-size: 10px;
     } 
 }
+    .logo-center-top {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+}
+
+.logo-img {
+  height: 30px; /* Adjust size as needed */
+  object-fit: contain;
+}
+    
     .app-logo-left {
       position: absolute;
       font-size: 18px;
@@ -165,7 +178,8 @@
 </head>
 <body>
   <!-- Header con logo, search y followers -->
-  <div class="app-logo">THE RED</div>
+  <div class="logo-center-top">The Red</div>
+</div>
   <div class="search-icon">🔍</div>
   <div class="followers-text">Followers</div>
   </div>
