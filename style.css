@@ -60,3 +60,23 @@ form button:hover {
   font-size: 0.9em;
   color: #aaa;
 }
+.video-info-right {
+  position: absolute;
+  bottom: 280px;
+  right: 15px;
+  color: white;
+  text-align: right;
+  z-index: 10;
+  text-shadow: 0 0 5px black;
+}
+
+.video-info-right .user {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.video-info-right .description {
+  font-size: 14px;
+  opacity: 0.9;
+}
