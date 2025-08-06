@@ -312,6 +312,21 @@
     }
 
     window.addEventListener("DOMContentLoaded", loadVideos);
+
+function toggleUploadOptions() {
+  const options = document.getElementById("uploadOptions");
+  options.style.display = options.style.display === "flex" ? "none" : "flex";
+}
+
+function uploadVideo() {
+  alert("🔺 Redirect to upload.html");
+  window.location.href = "upload.html"; // asegúrate que exista
+}
+
+function recordVideo() {
+  alert("🎥 Redirect to record.html");
+  window.location.href = "record.html"; // asegúrate que exista
+}    
   </script>
 
 </body>
