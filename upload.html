@@ -1,1 +1,64 @@
-<!-- Subir video -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Record - The Red</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: red;
+      text-shadow: 0 0 10px red;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #ccc;
+      margin-bottom: 40px;
+    }
+
+    .back-button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 10px red;
+      transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+      background: darkred;
+      transform: scale(1.05);
+    }
+
+    .placeholder-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="placeholder-icon">🎥</div>
+  <h1>Record a Video</h1>
+  <p>This feature is under construction. Stay tuned!</p>
+  <button class="back-button" onclick="window.location.href='feed.html'">← Back to Feed</button>
+</body>
+</html>
