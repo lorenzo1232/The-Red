@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,41 +7,51 @@
   <style>
     body {
       margin: 0;
-      background-color: black;
-      overflow: hidden;
+      background: #000;
       font-family: 'Segoe UI', sans-serif;
-      color: white;
+      overflow: hidden;
+    }
+
+    .feed-container {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+    }
+
+    .video-container {
+      position: relative;
+      height: 100vh;
+      scroll-snap-align: start;
     }
 
     video {
-      position: fixed;
-      top: 0;
-      left: 0;
       width: 100%;
-      height: 100vh;
+      height: 100%;
       object-fit: cover;
-      z-index: 1;
     }
 
-    .sidebar-left {
-      position: fixed;
-      left: 10px;
-      bottom: 110px;
+    .video-actions {
+      position: absolute;
+      left: 15px;
+      bottom: 120px;
       display: flex;
       flex-direction: column;
-      gap: 25px;
-      z-index: 3;
+      gap: 20px;
+      z-index: 10;
     }
 
-    .sidebar-left .icon {
+    .video-actions button {
+      background: none;
+      border: none;
+      color: white;
       font-size: 24px;
-      text-align: center;
       cursor: pointer;
+      text-shadow: 0 0 5px black;
     }
 
-    .video-info-right{
+    .video-info-right {
       position: absolute;
-      bottom: 100px;
+      bottom: 280px;
       right: 15px;
       color: white;
       text-align: right;
@@ -52,7 +61,7 @@
 
     .video-info-right .user {
       font-weight: bold;
-      font-size: 18px;
+      font-size: 16px;
       margin-bottom: 5px;
     }
 
@@ -61,96 +70,92 @@
       opacity: 0.9;
     }
 
+    /* Botón central grabar */
+    .record-button {
+      position: fixed;
+      bottom: 45px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 32px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      text-align: center;
+      line-height: 60px;
+      z-index: 20;
+      box-shadow: 0 0 10px red;
+      cursor: pointer;
+    }
+
+    /* Barra de navegación inferior */
     .bottom-nav {
       position: fixed;
       bottom: 0;
       width: 100%;
       height: 60px;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.7);
       display: flex;
       justify-content: space-around;
       align-items: center;
-      z-index: 5;
+      z-index: 15;
     }
 
-    .bottom-nav .nav-item {
+    .nav-item {
       text-align: center;
       color: white;
-      font-size: 12px;
+      font-size: 14px;
+      position: relative;
     }
 
-    .upload-btn {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: red;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      font-size: 32px;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 6;
-      box-shadow: 0 0 10px red;
-      cursor: pointer;
-    }
-
-    .header {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 6;
-      font-weight: bold;
+    .nav-icon {
       font-size: 22px;
+      display: block;
     }
 
-    .search-icon {
-      position: fixed;
-      top: 10px;
+    .badge {
+      position: absolute;
+      top: -5px;
       right: 10px;
-      font-size: 20px;
-      cursor: pointer;
-      z-index: 6;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 10px;
     }
   </style>
 </head>
 <body>
 
-  <video id="videoPlayer" autoplay muted loop playsinline></video>
-
-  <div class="header">THE RED</div>
-  <div class="search-icon">🔍</div>
-
-  <div class="sidebar-left">
-    <div class="icon">👤</div>
-    <div class="icon">❤️</div>
-    <div class="icon">💬</div>
-    <div class="icon">📌</div>
-    <div class="icon">🔄</div>
+  <div class="feed-container" id="feedContainer">
+    <!-- Videos se insertan aquí dinámicamente -->
   </div>
 
-  <div class="video-info">
-    <div class="user">@user</div>
-    <div class="description">Description of the video...</div>
-  </div>
+  <!-- Botón central grabar -->
+  <button class="record-button">＋</button>
 
-  <div class="upload-btn">＋</div>
-
+  <!-- Barra de navegación inferior -->
   <div class="bottom-nav">
     <div class="nav-item">
-      <div>👥</div>
-      <div>Friends</div>
+      <span class="nav-icon">🏠</span>
+      <span class="nav-text">Home</span>
     </div>
     <div class="nav-item">
-      <div>💬</div>
-      <div>Inbox</div>
+      <span class="nav-icon">👥</span>
+      <span class="badge">55</span>
+      <span class="nav-text">Friends</span>
+    </div>
+    <div class="nav-item"></div> <!-- Espacio para el botón central -->
+    <div class="nav-item">
+      <span class="nav-icon">💬</span>
+      <span class="badge">11</span>
+      <span class="nav-text">Inbox</span>
     </div>
     <div class="nav-item">
-      <div>👤</div>
-      <div>Profile</div>
+      <span class="nav-icon">👤</span>
+      <span class="nav-text">Profile</span>
     </div>
   </div>
 
@@ -164,39 +169,46 @@
       projectId: "the-red-6d1f8",
       storageBucket: "the-red-6d1f8.appspot.com",
       messagingSenderId: "720944313823",
-      appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
-      measurementId: "G-758MJ16J16"
+      appId: "1:720944313823:web:4cb2acd48dfb173c6c806a"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     async function loadVideos() {
+      const feedContainer = document.getElementById("feedContainer");
       const querySnapshot = await getDocs(collection(db, "videos"));
-      const player = document.getElementById("videoPlayer");
 
       if (querySnapshot.empty) {
-        console.warn("⚠️ No se encontraron videos en la colección 'videos'.");
+        feedContainer.innerHTML = `<p style="color: white; text-align: center; margin-top: 50%;">⚠️ No se encontraron videos en la colección 'videos'.</p>`;
         return;
       }
 
-      const videos = [];
-      querySnapshot.forEach(doc => {
+      querySnapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.url) videos.push(data.url);
-      });
+        const videoContainer = document.createElement("div");
+        videoContainer.className = "video-container";
+        videoContainer.innerHTML = `
+          <video src="${data.url}" autoplay loop muted playsinline></video>
 
-      let currentIndex = 0;
-      player.src = videos[currentIndex];
+          <div class="video-actions">
+            <button>❤️</button>
+            <button>💬</button>
+            <button>📌</button>
+            <button>🔄</button>
+          </div>
 
-      player.addEventListener('ended', () => {
-        currentIndex = (currentIndex + 1) % videos.length;
-        player.src = videos[currentIndex];
-        player.play();
+          <div class="video-info-right">
+            <div class="user">@${data.username || "user"}</div>
+            <div class="description">${data.description || "Video description"}</div>
+          </div>
+        `;
+        feedContainer.appendChild(videoContainer);
       });
     }
 
-    window.addEventListener('DOMContentLoaded', loadVideos);
+    window.addEventListener("DOMContentLoaded", loadVideos);
   </script>
+
 </body>
 </html>
