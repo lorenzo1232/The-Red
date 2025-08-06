@@ -16,7 +16,7 @@
     overflow: hidden;
   }
 
-  /* HEADER transparente */
+  /* HEADER transparente sin línea roja */
   .header {
     display: flex;
     align-items: center;
@@ -34,6 +34,16 @@
     display: flex;
     align-items: center;
     gap: 10px;
+  }
+  .header .right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto; /* empuja hacia la izquierda */
+    margin-left: 20px; /* ajusta la posición */
+  }
+  .header .right span {
+    font-size: 15px;
   }
   .header-icon {
     font-size: 20px;
@@ -145,12 +155,12 @@
 </head>
 <body>
 
-<!-- HEADER transparente -->
+<!-- HEADER -->
 <div class="header">
   <div class="left">
     <span class="header-icon">🔍</span>
+    <div class="logo">THE RED</div>
   </div>
-  <div class="logo">THE RED</div>
   <div class="right">
     <span>Following</span>
     <span class="header-icon">☰</span>
