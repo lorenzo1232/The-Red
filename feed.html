@@ -41,8 +41,8 @@
 
     /* Floating Action Icons Left */
     .floating-icons {
-        position: fixed;
-        bottom: 80px; /* Just above bottom nav */
+        position: absolute;
+        bottom: 80px;
         left: 10px;
         display: flex;
         flex-direction: column;
@@ -90,11 +90,35 @@
         font-size: 24px;
     }
 
-    /* Video Style */
-    video {
+    /* Video Feed Style */
+    .feed {
+        height: 100vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+    }
+    .video-container {
+        position: relative;
         width: 100%;
         height: 100vh;
+        scroll-snap-align: start;
+    }
+    video {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
+    }
+
+    /* Video Info */
+    .video-info {
+        position: absolute;
+        bottom: 120px;
+        left: 15px;
+        z-index: 10;
+        text-shadow: 0 0 5px black;
+    }
+    .video-info strong {
+        display: block;
+        color: red;
     }
 </style>
 </head>
@@ -106,26 +130,102 @@
     <span>Following ☰</span>
 </div>
 
-<!-- Floating Left Icons -->
-<div class="floating-icons">
-    <button>👤</button>
-    <button>❤️</button>
-    <button>💬</button>
-    <button>📌</button>
-    <button>🔄</button>
-</div>
-
-<!-- Video Feed -->
-<video src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay loop muted playsinline></video>
+<!-- Feed Container -->
+<div class="feed" id="feed"></div>
 
 <!-- Bottom Navigation -->
 <div class="bottom-nav">
     <div class="nav-item"><span class="nav-icon">🏠</span>Home</div>
     <div class="nav-item"><span class="nav-icon">👥</span>Friends</div>
-    <div class="nav-item upload-btn">＋</div>
+    <div class="upload-btn">＋</div>
     <div class="nav-item"><span class="nav-icon">💬</span>Inbox</div>
     <div class="nav-item"><span class="nav-icon">👤</span>Profile</div>
 </div>
+
+<!-- Firebase Script -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
+    authDomain: "the-red-6d1f8.firebaseapp.com",
+    projectId: "the-red-6d1f8",
+    storageBucket: "the-red-6d1f8.appspot.com",
+    messagingSenderId: "720944313823",
+    appId: "1:720944313823:web:4cb2acd48dfb173c6c806a",
+    measurementId: "G-758MJ16J16"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loadVideos() {
+    const feed = document.getElementById("feed");
+    feed.innerHTML = "";
+
+    const querySnapshot = await getDocs(collection(db, "videos"));
+
+    if (querySnapshot.empty) {
+        feed.innerHTML = `
+            <div class="video-container">
+                <video src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay loop muted playsinline></video>
+                <div class="video-info">
+                    <strong>@thered</strong>
+                    Video de prueba
+                </div>
+                <div class="floating-icons">
+                    <button>👤</button>
+                    <button>❤️</button>
+                    <button>💬</button>
+                    <button>📌</button>
+                    <button>🔄</button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        feed.innerHTML += `
+            <div class="video-container">
+                <video src="${data.url}" autoplay loop muted playsinline></video>
+                <div class="video-info">
+                    <strong>@${data.username || 'user'}</strong>
+                    ${data.description || ''}
+                </div>
+                <div class="floating-icons">
+                    <button>👤</button>
+                    <button>❤️</button>
+                    <button>💬</button>
+                    <button>📌</button>
+                    <button>🔄</button>
+                </div>
+            </div>
+        `;
+    });
+
+    initVideoScroll();
+}
+
+function initVideoScroll() {
+    const videos = document.querySelectorAll("video");
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.play();
+            } else {
+                entry.target.pause();
+            }
+        });
+    }, { threshold: 0.7 });
+
+    videos.forEach(video => observer.observe(video));
+}
+
+loadVideos();
+</script>
 
 </body>
 </html>
