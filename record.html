@@ -7,7 +7,7 @@
   <style>
     body {
       margin: 0;
-      background: #000;
+      background: black;
       color: white;
       font-family: 'Segoe UI', sans-serif;
       display: flex;
@@ -15,50 +15,155 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      text-align: center;
+      overflow: hidden;
     }
 
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
-      color: red;
-      text-shadow: 0 0 10px red;
+    video {
+      width: 100%;
+      height: auto;
+      max-height: 70vh;
+      background: #111;
+      border-radius: 10px;
+      box-shadow: 0 0 20px red;
     }
 
-    p {
-      font-size: 1rem;
-      color: #ccc;
-      margin-bottom: 40px;
-    }
-
-    .back-button {
-      padding: 12px 24px;
-      font-size: 16px;
+    .record-btn {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70px;
+      height: 70px;
       background: red;
+      border-radius: 50%;
+      border: none;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 20px red;
+      transition: background 0.3s ease;
+    }
+
+    .record-btn:hover {
+      background: darkred;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 160px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .controls button {
+      background: rgba(255,0,0,0.9);
       color: white;
       border: none;
-      border-radius: 10px;
+      padding: 10px 16px;
+      border-radius: 25px;
       cursor: pointer;
       box-shadow: 0 0 10px red;
-      transition: all 0.2s ease;
+      font-size: 14px;
     }
 
-    .back-button:hover {
+    .controls button:hover {
       background: darkred;
-      transform: scale(1.05);
     }
 
-    .placeholder-icon {
-      font-size: 60px;
-      margin-bottom: 20px;
-      opacity: 0.8;
+    #status {
+      position: fixed;
+      top: 20px;
+      font-size: 16px;
+      color: #f33;
+      font-weight: bold;
+      text-shadow: 0 0 5px black;
     }
   </style>
 </head>
 <body>
-  <div class="placeholder-icon">🎥</div>
-  <h1>Record a Video</h1>
-  <p>This feature is under construction. Stay tuned!</p>
-  <button class="back-button" onclick="window.location.href='feed.html'">← Back to Feed</button>
+
+  <div id="status">Ready to Record</div>
+  <video id="preview" autoplay muted playsinline></video>
+
+  <div class="controls">
+    <button onclick="startRecording()">▶ Start</button>
+    <button onclick="stopRecording()">⏹ Stop</button>
+    <button onclick="downloadRecording()">⬇ Download</button>
+  </div>
+
+  <button class="record-btn" onclick="toggleRecording()">●</button>
+
+  <script>
+    let mediaRecorder;
+    let recordedChunks = [];
+    let isRecording = false;
+
+    const preview = document.getElementById('preview');
+    const status = document.getElementById('status');
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        preview.srcObject = stream;
+
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = function(e) {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+        mediaRecorder.onstop = function() {
+          status.innerText = "Recording stopped";
+        };
+
+        status.innerText = "Camera ready";
+      } catch (err) {
+        console.error('Camera access error:', err);
+        status.innerText = "Camera access denied";
+      }
+    }
+
+    function startRecording() {
+      if (mediaRecorder) {
+        recordedChunks = [];
+        mediaRecorder.start();
+        status.innerText = "🔴 Recording...";
+        isRecording = true;
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+      }
+    }
+
+    function downloadRecording() {
+      if (recordedChunks.length === 0) {
+        alert("No recording to download.");
+        return;
+      }
+
+      const blob = new Blob(recordedChunks, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "recording.webm";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function toggleRecording() {
+      if (!isRecording) {
+        startRecording();
+      } else {
+        stopRecording();
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", startCamera);
+  </script>
+
 </body>
 </html>
