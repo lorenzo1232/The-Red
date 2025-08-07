@@ -3,58 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Record Video - The Red</title>
+  <title>The Red - Record</title>
   <style>
     body {
       margin: 0;
-      background: black;
+      background: #000;
       color: white;
       font-family: 'Segoe UI', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
     }
 
     video {
-      width: 90%;
-      max-width: 400px;
-      border: 2px solid red;
-      border-radius: 12px;
-      box-shadow: 0 0 20px red;
+      width: 100%;
+      height: auto;
+      margin-top: 10px;
+      background: black;
     }
 
     .controls {
-      margin-top: 20px;
-      display: flex;
-      gap: 20px;
+      margin: 20px 0;
     }
 
-    .controls button {
+    button {
       background: red;
       color: white;
       border: none;
       padding: 10px 20px;
-      border-radius: 20px;
+      margin: 10px;
+      border-radius: 25px;
       font-size: 16px;
       cursor: pointer;
       box-shadow: 0 0 10px red;
     }
 
-    .controls button:hover {
-      background: darkred;
+    #status {
+      font-size: 14px;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
 
+  <h2>🎥 Record your video</h2>
   <video id="preview" autoplay muted playsinline></video>
+
   <div class="controls">
-    <button id="startBtn">Start</button>
-    <button id="stopBtn" disabled>Stop</button>
+    <button onclick="startRecording()">⏺️ Start</button>
+    <button onclick="stopRecording()">⏹️ Stop</button>
+    <button onclick="uploadToFirebase()">📤 Upload</button>
   </div>
 
+  <div id="status">Ready</div>
+
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -74,54 +77,68 @@
     const db = getFirestore(app);
 
     const preview = document.getElementById("preview");
-    const startBtn = document.getElementById("startBtn");
-    const stopBtn = document.getElementById("stopBtn");
-
+    const status = document.getElementById("status");
     let mediaRecorder;
     let recordedChunks = [];
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then((stream) => {
+      .then(stream => {
         preview.srcObject = stream;
         mediaRecorder = new MediaRecorder(stream);
 
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) recordedChunks.push(e.data);
+        mediaRecorder.ondataavailable = event => {
+          if (event.data.size > 0) recordedChunks.push(event.data);
         };
 
-        mediaRecorder.onstop = async () => {
-          const blob = new Blob(recordedChunks, { type: "video/mp4" });
-          const filename = `recorded_${Date.now()}.mp4`;
-          const storageRef = ref(storage, "videos/" + filename);
-          const snapshot = await uploadBytes(storageRef, blob);
-          const downloadURL = await getDownloadURL(snapshot.ref);
-
-          // Subimos metadatos a Firestore
-          await addDoc(collection(db, "videos"), {
-            username: "user", // puede ser dinámico en el futuro
-            description: "Recorded via record.html",
-            url: downloadURL,
-            timestamp: new Date()
-          });
-
-          alert("✅ Video uploaded successfully!");
-          window.location.href = "feed.html";
+        mediaRecorder.onstop = () => {
+          status.textContent = "✅ Recording stopped.";
         };
+      })
+      .catch(err => {
+        status.textContent = "❌ Camera error: " + err.message;
       });
 
-    startBtn.onclick = () => {
+    window.startRecording = () => {
       recordedChunks = [];
       mediaRecorder.start();
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
+      status.textContent = "🔴 Recording...";
     };
 
-    stopBtn.onclick = () => {
+    window.stopRecording = () => {
       mediaRecorder.stop();
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
+    };
+
+    window.uploadToFirebase = async () => {
+      if (recordedChunks.length === 0) {
+        alert("❗ No recording found.");
+        return;
+      }
+
+      status.textContent = "⏫ Uploading...";
+
+      const blob = new Blob(recordedChunks, { type: "video/mp4" });
+      const filename = `recordings/video_${Date.now()}.mp4`;
+      const storageRef = ref(storage, filename);
+
+      try {
+        await uploadBytes(storageRef, blob);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        await addDoc(collection(db, "videos"), {
+          url: downloadURL,
+          username: "user",
+          description: "Recorded video",
+          timestamp: Date.now()
+        });
+
+        status.textContent = "✅ Uploaded! Redirecting...";
+        setTimeout(() => {
+          window.location.href = "feed.html";
+        }, 1000);
+      } catch (error) {
+        status.textContent = "❌ Upload error: " + error.message;
+      }
     };
   </script>
-
 </body>
 </html>
