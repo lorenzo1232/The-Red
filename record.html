@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Record - The Red</title>
+  <title>Record Video - The Red</title>
   <style>
     body {
       margin: 0;
@@ -15,154 +15,112 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      overflow: hidden;
     }
 
     video {
-      width: 100%;
-      height: auto;
-      max-height: 70vh;
-      background: #111;
-      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      border: 2px solid red;
+      border-radius: 12px;
       box-shadow: 0 0 20px red;
-    }
-
-    .record-btn {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 70px;
-      height: 70px;
-      background: red;
-      border-radius: 50%;
-      border: none;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 0 20px red;
-      transition: background 0.3s ease;
-    }
-
-    .record-btn:hover {
-      background: darkred;
     }
 
     .controls {
-      position: fixed;
-      bottom: 160px;
+      margin-top: 20px;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: center;
+      gap: 20px;
     }
 
     .controls button {
-      background: rgba(255,0,0,0.9);
+      background: red;
       color: white;
       border: none;
-      padding: 10px 16px;
-      border-radius: 25px;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 16px;
       cursor: pointer;
       box-shadow: 0 0 10px red;
-      font-size: 14px;
     }
 
     .controls button:hover {
       background: darkred;
     }
-
-    #status {
-      position: fixed;
-      top: 20px;
-      font-size: 16px;
-      color: #f33;
-      font-weight: bold;
-      text-shadow: 0 0 5px black;
-    }
   </style>
 </head>
 <body>
 
-  <div id="status">Ready to Record</div>
   <video id="preview" autoplay muted playsinline></video>
-
   <div class="controls">
-    <button onclick="startRecording()">▶ Start</button>
-    <button onclick="stopRecording()">⏹ Stop</button>
-    <button onclick="downloadRecording()">⬇ Download</button>
+    <button id="startBtn">Start</button>
+    <button id="stopBtn" disabled>Stop</button>
   </div>
 
-  <button class="record-btn" onclick="toggleRecording()">●</button>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
+      authDomain: "the-red-6d1f8.firebaseapp.com",
+      projectId: "the-red-6d1f8",
+      storageBucket: "the-red-6d1f8.appspot.com",
+      messagingSenderId: "720944313823",
+      appId: "1:720944313823:web:4cb2acd48dfb173c6c806a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+    const db = getFirestore(app);
+
+    const preview = document.getElementById("preview");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+
     let mediaRecorder;
     let recordedChunks = [];
-    let isRecording = false;
 
-    const preview = document.getElementById('preview');
-    const status = document.getElementById('status');
-
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then((stream) => {
         preview.srcObject = stream;
-
         mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = function(e) {
+
+        mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) recordedChunks.push(e.data);
         };
-        mediaRecorder.onstop = function() {
-          status.innerText = "Recording stopped";
+
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(recordedChunks, { type: "video/mp4" });
+          const filename = `recorded_${Date.now()}.mp4`;
+          const storageRef = ref(storage, "videos/" + filename);
+          const snapshot = await uploadBytes(storageRef, blob);
+          const downloadURL = await getDownloadURL(snapshot.ref);
+
+          // Subimos metadatos a Firestore
+          await addDoc(collection(db, "videos"), {
+            username: "user", // puede ser dinámico en el futuro
+            description: "Recorded via record.html",
+            url: downloadURL,
+            timestamp: new Date()
+          });
+
+          alert("✅ Video uploaded successfully!");
+          window.location.href = "feed.html";
         };
+      });
 
-        status.innerText = "Camera ready";
-      } catch (err) {
-        console.error('Camera access error:', err);
-        status.innerText = "Camera access denied";
-      }
-    }
+    startBtn.onclick = () => {
+      recordedChunks = [];
+      mediaRecorder.start();
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    };
 
-    function startRecording() {
-      if (mediaRecorder) {
-        recordedChunks = [];
-        mediaRecorder.start();
-        status.innerText = "🔴 Recording...";
-        isRecording = true;
-      }
-    }
-
-    function stopRecording() {
-      if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        isRecording = false;
-      }
-    }
-
-    function downloadRecording() {
-      if (recordedChunks.length === 0) {
-        alert("No recording to download.");
-        return;
-      }
-
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "recording.webm";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function toggleRecording() {
-      if (!isRecording) {
-        startRecording();
-      } else {
-        stopRecording();
-      }
-    }
-
-    window.addEventListener("DOMContentLoaded", startCamera);
+    stopBtn.onclick = () => {
+      mediaRecorder.stop();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    };
   </script>
 
 </body>
