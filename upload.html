@@ -3,102 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Red - Upload</title>
+  <title>Upload - The Red</title>
   <style>
     body {
       margin: 0;
-      background-color: #000;
+      background: #000;
       font-family: 'Segoe UI', sans-serif;
       color: white;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 20px;
     }
 
-    h1 {
+    h2 {
       color: red;
       margin-bottom: 20px;
-      letter-spacing: 2px;
     }
 
-    .upload-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid red;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px red;
-    }
-
-    input[type="file"], input[type="text"] {
+    input, textarea, button {
+      width: 100%;
+      max-width: 300px;
       margin: 10px 0;
       padding: 10px;
+      font-size: 16px;
       border: none;
-      border-radius: 8px;
-      width: 240px;
-      font-size: 14px;
+      border-radius: 5px;
     }
 
     input[type="file"] {
-      background-color: #111;
+      background: #111;
       color: white;
     }
 
-    input[type="text"] {
-      background-color: #1a1a1a;
-      color: white;
-    }
-
-    .upload-btn {
-      position: fixed;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 20px;
+    button {
       background: red;
       color: white;
-      padding: 14px 28px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 10px red;
+    }
+
+    .status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: gray;
+    }
+
+    .floating-btn {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: red;
+      color: white;
+      font-size: 28px;
+      padding: 10px 20px;
       border: none;
       border-radius: 30px;
-      box-shadow: 0 0 12px red;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .upload-btn:hover {
-      background: darkred;
-    }
-
-    .back-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      font-size: 18px;
-      color: red;
+      box-shadow: 0 0 10px red;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <div class="back-btn" onclick="window.location.href='feed.html'">⬅ Back</div>
+  <h2>Upload Video</h2>
+  <input type="file" id="videoFile" accept="video/*">
+  <input type="text" id="username" placeholder="@username">
+  <textarea id="description" placeholder="Video description..."></textarea>
+  <button onclick="uploadVideo()">Upload</button>
+  <div class="status" id="statusMessage"></div>
 
-  <h1>Upload to The Red</h1>
-
-  <div class="upload-box">
-    <input type="file" id="videoFile" accept="video/*" />
-    <input type="text" id="description" placeholder="Enter video description..." />
-  </div>
-
-  <button class="upload-btn" onclick="uploadVideo()">Upload</button>
+  <button class="floating-btn" onclick="window.location.href='feed.html'">⬅ Back to Feed</button>
 
   <script type="module">
-    // Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -117,39 +98,42 @@
     const db = getFirestore(app);
 
     async function uploadVideo() {
-      const fileInput = document.getElementById('videoFile');
-      const descriptionInput = document.getElementById('description');
+      const fileInput = document.getElementById("videoFile");
+      const usernameInput = document.getElementById("username");
+      const descInput = document.getElementById("description");
+      const status = document.getElementById("statusMessage");
 
-      if (!fileInput.files.length) {
-        alert("⚠️ Please select a video file.");
+      const file = fileInput.files[0];
+      const username = usernameInput.value.trim();
+      const description = descInput.value.trim();
+
+      if (!file || !username || !description) {
+        status.textContent = "⚠️ Please fill out all fields.";
         return;
       }
 
-      const file = fileInput.files[0];
-      const description = descriptionInput.value || "No description";
-
-      const storageRef = ref(storage, 'videos/' + file.name);
-
+      const storageRef = ref(storage, 'videos/' + Date.now() + '_' + file.name);
       try {
+        status.textContent = "⏳ Uploading...";
         const snapshot = await uploadBytes(storageRef, file);
         const downloadURL = await getDownloadURL(snapshot.ref);
 
         await addDoc(collection(db, "videos"), {
-          url: downloadURL,
+          username: username,
           description: description,
-          username: "user", // Puedes cambiar por auth user
+          url: downloadURL,
           createdAt: serverTimestamp()
         });
 
-        alert("✅ Video uploaded!");
-        window.location.href = "feed.html";
-
+        status.textContent = "✅ Video uploaded successfully!";
+        fileInput.value = '';
+        usernameInput.value = '';
+        descInput.value = '';
       } catch (error) {
         console.error("Upload error:", error);
-        alert("❌ Error uploading video");
+        status.textContent = "❌ Upload failed. Please try again.";
       }
     }
   </script>
-
 </body>
 </html>
