@@ -1,252 +1,119 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Red - Feed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>The Red — Feed</title>
   <style>
-    body {
-      margin: 0;
-      background: #000;
-      font-family: 'Segoe UI', sans-serif;
-      overflow: hidden;
+    :root{
+      --bg:#000; --panel:#0d0d0d; --soft:#151515;
+      --text:#f2f2f2; --muted:#9a9a9a;
+      --red:#ff2b2b; --shadow:0 0 40px rgba(255,0,0,.15);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    .topbar{position:fixed;top:0;left:0;right:0;height:58px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,.85),rgba(0,0,0,0));z-index:10}
+    .ghost{width:min(100vw,520px)}
+    .brand{display:flex;align-items:center;gap:10px;opacity:.95;padding-left:12px}
+    .brand-dot{width:12px;height:12px;border-radius:50%;background:var(--red)}
+    .brand-name{font-weight:800;letter-spacing:.5px}
+
+    .feed{position:relative;height:100vh;overflow-y:auto;scroll-snap-type:y mandatory;background:linear-gradient(180deg,#000 0%,#050505 100%);padding-top:58px;padding-bottom:120px}
+    .item{position:relative;height:calc(100vh - 178px);scroll-snap-align:start;display:flex;align-items:center;justify-content:center}
+    .video{position:relative;width:min(100vw,520px);height:100%;background:#000;overflow:hidden;border-radius:12px}
+    video{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.05) saturate(1.05)}
+
+    /* Texto del video */
+    .meta{position:absolute;left:14px;bottom:110px;right:86px;display:flex;flex-direction:column;gap:8px;text-shadow:0 2px 16px rgba(0,0,0,.65)}
+    .user{font-weight:700}
+    .caption{color:#ddd;line-height:1.3}
+    .tag{color:var(--red);opacity:.95}
+
+    /* === LATERAL IZQUIERDA (acciones) === */
+    .video-actions{
+      position:absolute;
+      left:12px;
+      bottom:18%;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      align-items:center;
+      filter:drop-shadow(0 0 10px rgba(255,0,0,.12));
+      z-index:5;
+    }
+    .action-btn{
+      width:52px;height:52px;border-radius:16px;
+      background:rgba(10,10,10,.7);backdrop-filter:blur(6px);
+      border:1px solid #1f1f1f;display:grid;place-items:center;
+      transition:transform .15s ease;
+    }
+    .action-btn:active{transform:scale(.96)}
+    .action-btn img{width:26px;height:26px}
+    .action-count{font-size:12px;color:var(--muted);margin-top:4px}
+
+    /* Info adicional (como pediste) */
+    .video-info-right{
+      position:absolute;
+      left:12px;
+      bottom:6%;
+      color:#fff;
+      font-size:14px;
+      text-shadow:0 2px 10px rgba(0,0,0,.7);
+      max-width:60%;
     }
 
-    .feed-container {
-      height: 100vh;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-    }
+    /* Nav inferior */
+    .nav{position:fixed;left:0;right:0;bottom:0;padding:10px 16px 18px;background:linear-gradient(180deg,rgba(0,0,0,0) 0%, rgba(0,0,0,.65) 18%, rgba(0,0,0,.9) 100%);z-index:5}
+    .nav-inner{background:var(--panel);border:1px solid #1b1b1b;box-shadow:var(--shadow);border-radius:22px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;width:min(100vw,520px);margin:0 auto;position:relative}
+    .nav-btn{width:56px;height:56px;border-radius:16px;background:var(--soft);display:grid;place-items:center;border:1px solid #1f1f1f}
+    .nav-btn img{width:26px;height:26px}
+    .nav-btn.active{outline:2px solid rgba(255,43,43,.35)}
+    .record{position:absolute;left:50%;top:0;transform:translate(-50%,-22px);width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 50% 50%, #1a1a1a 0%, #111 100%);box-shadow:0 0 40px rgba(255,0,0,.25), inset 0 0 18px rgba(255,0,0,.15);border:1px solid #2a2a2a}
+    .record object{width:66px;height:66px;display:block}
 
-    .video-container {
-      position: relative;
-      height: 100vh;
-      scroll-snap-align: start;
-    }
-
-    video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .video-actions {
-      position: absolute;
-      left: 15px;
-      bottom: 90px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      z-index: 10;
-    }
-
-    .video-actions button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      text-shadow: 0 0 5px black;
-    }
-
-    .video-info-right {
-      position: absolute;
-      bottom: 90px;
-      right: 15px;
-      color: white;
-      text-align: right;
-      z-index: 10;
-      text-shadow: 0 0 5px black;
-    }
-
-    .video-info-right .user {
-      font-weight: bold;
-      font-size: 16px;
-      margin-bottom: 5px;
-    }
-
-    .video-info-right .description {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    /* Botón central grabar */
-    .upload-main-btn {
-      position: fixed;
-      bottom: 35px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 36px;
-      background: red;
-      color: white;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      text-align: center;
-      line-height: 60px;
-      box-shadow: 0 0 15px red;
-      z-index: 100;
-      cursor: pointer;
-    }
-
-    .upload-options {
-      position: fixed;
-      bottom: 145px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      z-index: 99;
-    }
-
-    .upload-option {
-      background: rgba(255, 0, 0, 0.9);
-      color: white;
-      padding: 10px 16px;
-      border-radius: 20px;
-      margin: 6px 0;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 0 8px red;
-    }
-
-    .upload-option:hover {
-      transform: scale(1.05);
-      background: darkred;
-    }
-
-    /* Barra inferior */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      height: 60px;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 15;
-    }
-
-    .nav-item {
-      text-align: center;
-      color: white;
-      font-size: 14px;
-      position: relative;
-    }
-
-    .nav-icon {
-      font-size: 22px;
-      display: block;
-    }
-
-    .badge {
-      position: absolute;
-      top: -5px;
-      right: 10px;
-      background: red;
-      color: white;
-      border-radius: 50%;
-      padding: 2px 6px;
-      font-size: 10px;
-    }
-
-    /* Header */
-    .logo-center-top {
-      position: absolute;
-      top: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .logo-text {
-      font-size: 20px;
-      font-weight: bold;
-      color: red;
-      letter-spacing: 1px;
-    }
-
-    .search-icon {
-      position: absolute;
-      font-size: 20px;     
-      top: 40px;
-      right: 20px;
-      color: white;
-      text-align: right;
-      z-index: 10;
-      text-shadow: 0 0 5px black;
-    }
-
-    .followers-text {
-      position: absolute;
-      color:white;
-      font-size: 18px; 
-      font-weight: normal;
-      top: 40px;
-      left:20px;
-      text-align: center;
-      z-index: 10;
-      text-shadow: 0 0 4px black; 
-    }
+    .loader{display:grid;place-items:center;height:60vh;color:#c3c3c3;opacity:.75}
   </style>
 </head>
 <body>
-
-  <!-- Header con logo, search y followers -->
-  <div class="logo-center-top">
-    <span class="logo-text">THE RED</span>
-  </div>
-  <div class="search-icon">🔍</div>
-  <div class="followers-text">Followers</div>
-
-  <!-- Contenedor del feed -->
-  <div class="feed-container" id="feedContainer">
-    <!-- Videos se insertan aquí dinámicamente -->
-  </div>
-
-  <!-- Botón central -->
-  <div class="upload-main-btn" onclick="toggleUploadOptions()">＋</div>
-
-  <!-- Opciones flotantes -->
-  <div class="upload-options" id="uploadOptions">
-    <div class="upload-option" onclick="uploadVideo()">📤 Upload</div>
-    <div class="upload-option" onclick="recordVideo()">📹 Record</div>
-  </div>
-
-  <!-- Barra de navegación inferior -->
-  <div class="bottom-nav">
-    <div class="nav-item">
-      <span class="nav-icon">🏠</span>
-      <span class="nav-text">Home</span>
-    </div>
-    <div class="nav-item">
-      <span class="nav-icon">👥</span>
-      <span class="badge">55</span>
-      <span class="nav-text">Friends</span>
-    </div>
-    <div class="nav-item"></div> <!-- Espacio para botón central -->
-    <div class="nav-item">
-      <span class="nav-icon">💬</span>
-      <span class="badge">11</span>
-      <span class="nav-text">Inbox</span>
-    </div>
-    <div class="nav-item">
-      <span class="nav-icon">👤</span>
-      <span class="nav-text">Profile</span>
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="ghost">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <div class="brand-name">THE RED</div>
+      </div>
     </div>
   </div>
 
-  <!-- Firebase y lógica -->
+  <!-- FEED -->
+  <div class="feed" id="feed">
+    <div class="loader" id="loader">Cargando feed…</div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" title="Home"><img src="assets/icons/home.png" alt="Home"></button>
+      <button class="nav-btn" title="Search"><img src="assets/icons/friends.png" alt="Search"></button>
+
+      <div class="record" title="Record">
+        <object type="image/svg+xml" data="assets/images/record_pulse.svg"></object>
+      </div>
+
+      <button class="nav-btn" title="Inbox"><img src="assets/icons/inbox.png" alt="Inbox"></button>
+      <button class="nav-btn" title="Profile"><img src="assets/icons/profile.png" alt="Profile"></button>
+    </div>
+  </nav>
+
+  <!-- Firebase + Feed logic -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // Firebase v9 (CDN)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, collection, doc, getDoc, setDoc, onSnapshot, query, orderBy, limit, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import { getStorage, ref as sRef, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
+    // --- TU CONFIG ---
     const firebaseConfig = {
       apiKey: "AIzaSyCK3buy-uDODEUEbfANKz5V7UOdw_Iubws",
       authDomain: "the-red-6d1f8.firebaseapp.com",
@@ -256,59 +123,124 @@
       appId: "1:720944313823:web:4cb2acd48dfb173c6c806a"
     };
 
+    // Init
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
+    await signInAnonymously(auth).catch(console.error);
 
-    async function loadVideos() {
-      const feedContainer = document.getElementById("feedContainer");
-      const querySnapshot = await getDocs(collection(db, "videos"));
+    const feedEl = document.getElementById("feed");
+    const el = (t,c)=>{const x=document.createElement(t); if(c) x.className=c; return x};
 
-      if (querySnapshot.empty) {
-        feedContainer.innerHTML = `<p style="color: white; text-align: center; margin-top: 50%;">⚠️ No se encontraron videos en la colección 'videos'.</p>`;
+    // Render de un item de video
+    async function renderItem(id, v){
+      const url = await getDownloadURL(sRef(storage, v.storagePath));
+      const section = el("section","item");
+      const wrap = el("div","video");
+
+      const video = document.createElement("video");
+      video.src = url; video.autoplay = true; video.loop = true; video.muted = true; video.playsInline = true;
+      wrap.appendChild(video);
+
+      // Texto principal
+      const meta = el("div","meta");
+      const user = el("div","user"); user.textContent = v.user || "@thered_user";
+      const caption = el("div","caption");
+      caption.innerHTML = `${(v.caption||"").replace(/\n/g,"<br>")} <span class="tag">#TheRed</span>`;
+      meta.appendChild(user); meta.appendChild(caption);
+      wrap.appendChild(meta);
+
+      // ====== LATERAL IZQUIERDA ======
+      const actions = el("div","video-actions");
+
+      // LIKE
+      const likeBtn = el("button","action-btn"); likeBtn.dataset.action="like";
+      likeBtn.innerHTML = `<img src="assets/icons/love.png" alt="like">`;
+      const likeCount = el("div","action-count"); likeCount.textContent=(v.likesCount??0).toLocaleString();
+
+      // COMMENTS
+      const cmtBtn = el("button","action-btn");
+      cmtBtn.innerHTML = `<img src="assets/icons/comments.png" alt="comments">`;
+      const cmtCount = el("div","action-count"); cmtCount.textContent=(v.commentsCount??0).toLocaleString();
+
+      // FAVORITES (archivo con nombre en español como pediste)
+      const favBtn = el("button","action-btn");
+      favBtn.innerHTML = `<img src="assets/icons/favoritos.png" alt="favorites">`;
+      const favLbl = el("div","action-count"); favLbl.textContent="Save";
+
+      // SHARE
+      const shareBtn = el("button","action-btn");
+      shareBtn.innerHTML = `<img src="assets/icons/share.png" alt="share">`;
+      const shareLbl = el("div","action-count"); shareLbl.textContent="Share";
+
+      actions.append(likeBtn, likeCount, cmtBtn, cmtCount, favBtn, favLbl, shareBtn, shareLbl);
+      wrap.appendChild(actions);
+
+      // Info adicional (como tu bloque)
+      const infoRight = el("div","video-info-right");
+      infoRight.innerHTML = `
+        <div class="user">@${v.user || "user"}</div>
+        <div class="description">${v.caption || "Video description"}</div>
+      `;
+      wrap.appendChild(infoRight);
+      // ====== /LATERAL IZQUIERDA ======
+
+      // Interacciones
+      video.addEventListener("click", ()=> video.muted = !video.muted);
+      likeBtn.addEventListener("click", ()=> toggleLike(id, likeBtn));
+
+      // Live counters
+      onSnapshot(doc(db,"videos",id),(d)=>{
+        const data = d.data(); if(!data) return;
+        likeCount.textContent=(data.likesCount??0).toLocaleString();
+        cmtCount.textContent=(data.commentsCount??0).toLocaleString();
+      });
+
+      section.appendChild(wrap);
+      return section;
+    }
+
+    // Like transactional (Firestore /videos/{id}/likes/{uid})
+    async function toggleLike(videoId, btn){
+      const user = auth.currentUser; if(!user) return;
+      const videoRef = doc(db,"videos",videoId);
+      const likeRef  = doc(db,"videos",videoId,"likes",user.uid);
+      const existing = await getDoc(likeRef);
+
+      await runTransaction(db, async tx=>{
+        const vs = await tx.get(videoRef);
+        if(!vs.exists()) return;
+        let count = vs.data().likesCount || 0;
+        if(existing.exists()){
+          tx.delete(likeRef);
+          count = Math.max(0, count-1);
+        }else{
+          tx.set(likeRef,{uid:user.uid,createdAt:serverTimestamp()});
+          count = count+1;
+        }
+        tx.update(videoRef,{likesCount:count});
+      }).catch(console.error);
+
+      btn.classList.toggle("on");
+      btn.querySelector("img").style.filter = btn.classList.contains("on") ? 'drop-shadow(0 0 8px rgba(255,0,0,.6))' : 'none';
+    }
+
+    // Suscribir al feed (últimos 25)
+    const q = query(collection(db,"videos"), orderBy("createdAt","desc"), limit(25));
+    onSnapshot(q, async (snap)=>{
+      feedEl.innerHTML = "";
+      if(snap.empty){
+        const empty = el("div","loader"); empty.textContent = "No hay videos aún. Sube uno a /videos en Storage y crea el doc en Firestore.";
+        feedEl.appendChild(empty);
         return;
       }
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const videoContainer = document.createElement("div");
-        videoContainer.className = "video-container";
-        videoContainer.innerHTML = `
-          <video src="${data.url}" autoplay loop muted playsinline></video>
-
-          <div class="video-actions">
-            <button>❤️</button>
-            <button>💬</button>
-            <button>📌</button>
-            <button>🔄</button>
-          </div>
-
-          <div class="video-info-right">
-            <div class="user">@${data.username || "user"}</div>
-            <div class="description">${data.description || "Video description"}</div>
-          </div>
-        `;
-        feedContainer.appendChild(videoContainer);
-      });
-    }
-
-    window.addEventListener("DOMContentLoaded", loadVideos);
-
-    // Botones de grabación flotantes
-    function toggleUploadOptions() {
-      const options = document.getElementById("uploadOptions");
-      options.style.display = options.style.display === "flex" ? "none" : "flex";
-    }
-
-    function uploadVideo() {
-      alert("🔺 Redirect to upload.html");
-      window.location.href = "upload.html";
-    }
-
-    function recordVideo() {
-      alert("🎥 Redirect to record.html");
-      window.location.href = "record.html";
-    }
+      for(const d of snap.docs){
+        const v = d.data();
+        const node = await renderItem(d.id, v);
+        feedEl.appendChild(node);
+      }
+    });
   </script>
-
 </body>
 </html>
